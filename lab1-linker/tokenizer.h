@@ -24,7 +24,7 @@ public:
 
     static bool checkSymbol(std::string symbol);
 
-    static bool checkInstr();
+    static bool checkInstr(int instr);
 
     void printAll();
 

@@ -115,8 +115,8 @@ bool Tokenizer::checkSymbol(std::string symbol) {
     return true;
 }
 
-bool Tokenizer::checkInstr() {
-    return false;
+bool Tokenizer::checkInstr(int instr) {
+    return instr >= 0 && instr <= 9999;
 }
 
 
