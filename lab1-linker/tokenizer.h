@@ -7,11 +7,9 @@
 
 #include <fstream>
 
-bool isDelimiter(char c);
-
 class Tokenizer {
 public:
-    Tokenizer(std::istream* input, std::ostream* error);
+    Tokenizer(std::istream* input);
     ~Tokenizer();
 
     int readInt();
@@ -28,16 +26,25 @@ public:
 
     void printAll();
 
+    bool reachEnd();
+
 private:
     std::istream* input;
-    std::ostream* error;
-    int line;
-    int offset;
-    int word_length = 0;
     std::string buffer;
+    int line = 0;
+    int offset = 0;
+    int word_length = 0;
+
+    bool newLine();
 
     std::string readWord();
-    bool newLine();
+
+    static bool isDelimiter(char c);
+
+    static bool isAlphabet(char c);
+
+    static bool isDigit(char c);
+
 };
 
 #endif //LINKER_TOKENIZER_H

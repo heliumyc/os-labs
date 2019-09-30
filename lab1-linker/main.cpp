@@ -16,13 +16,13 @@ void pass2();
 
 int main(int argc, char *argv[]) {
     ifstream myFile;
-    myFile.open("input-1");
+    myFile.open("test");
 
 //    ofstream error;
 //    ostream error(cout);
 
 
-    Tokenizer tokenizer(&myFile, &cout);
+    Tokenizer tokenizer(&myFile);
     tokenizer.printAll();
 
     myFile.close();
