@@ -1,5 +1,4 @@
 #include <iostream>
-#include <fstream>
 #include <unordered_map>
 #include <vector>
 #include "tokenizer.h"
@@ -13,7 +12,7 @@ unordered_map<string, int> symbolTable; // using hash table rather than rbt. str
 
 void pass_1(istream& input, ostream& output) {
     Tokenizer tokenizer(&input);
-    int offset = 0;
+    int baseAddr = 0;
     for(int defCount = tokenizer.readInt(); defCount >= 0; defCount = tokenizer.readInt()) {
 
         // def list
@@ -30,7 +29,7 @@ void pass_1(istream& input, ostream& output) {
             else {
                 // insert symbol into table
                 symbolList.push_back(symbol);
-                symbolTable.insert({symbol, addr+offset});
+                symbolTable.insert({symbol, addr + baseAddr});
             }
         }
 
@@ -44,7 +43,7 @@ void pass_1(istream& input, ostream& output) {
 
         // instruction list
         int instrCount = tokenizer.readInt();
-        //TODO check count
+        VERIFY_ELSE_BREAK(Tokenizer::checkInstrCount(instrCount, baseAddr), {})
         for (int i = 0; i < instrCount; ++i) {
             char mode = tokenizer.readMode();
             VERIFY_ELSE_BREAK(Tokenizer::checkMode(mode), {})
@@ -52,7 +51,7 @@ void pass_1(istream& input, ostream& output) {
             int instr = tokenizer.readInt();
             VERIFY_ELSE_BREAK(Tokenizer::checkInstr(instr), {})
         }
-        offset += instrCount;
+        baseAddr += instrCount;
     }
     output << "Symbol Table" << endl;
     for (auto & it : symbolList) {
