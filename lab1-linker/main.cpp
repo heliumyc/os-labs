@@ -1,8 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <unordered_map>
-#include "lexer.h"
-#include "parser.h"
+#include <vector>
 #include "tokenizer.h"
 
 #define VERIFY_ELSE_BREAK(verification, error_statement) if(!verification) {error_statement;break;}
@@ -14,6 +13,13 @@ unordered_map<string, int> symbolTable; // using hash table rather than rbt. str
 
 void pass_1(istream& input, ostream& output) {
     Tokenizer tokenizer(&input);
+    for(int defCount = tokenizer.readInt(); defCount >= 0; defCount = tokenizer.readInt()) {
+        VERIFY_ELSE_BREAK(Tokenizer::checkCount(defCount), {})
+        for (int i = 0; i < defCount; ++i) {
+            string symbol = tokenizer.readSymbol();
+            VERIFY_ELSE_BREAK(Tokenizer::checkSymbol(symbol), {})
+        }
+    }
 }
 
 void pass_2(Tokenizer& tokenizer);
