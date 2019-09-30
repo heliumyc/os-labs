@@ -119,4 +119,8 @@ bool Tokenizer::checkInstr(int instr) {
     return instr >= 0 && instr <= 9999;
 }
 
+bool Tokenizer::checkCount(int count) {
+    return count >= 0 && count <= 16;
+}
+
 

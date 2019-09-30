@@ -20,6 +20,8 @@ public:
 
 //    int readInstr();
 
+    static bool checkCount(int count);
+
     static bool checkMode(char mode);
 
     static bool checkSymbol(std::string symbol);
