@@ -26,6 +26,8 @@ public:
 
     static bool checkSymbol(std::string symbol);
 
+    static bool checkInstrCount(int count, int baseAddr);
+
     static bool checkInstr(int instr);
 
     void printAll();

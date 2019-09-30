@@ -123,4 +123,8 @@ bool Tokenizer::checkCount(int count) {
     return count >= 0 && count <= 16;
 }
 
+bool Tokenizer::checkInstrCount(int count, int baseAddr) {
+    return (count+baseAddr) <= 512 && (count+baseAddr) >= 0;
+}
+
 
