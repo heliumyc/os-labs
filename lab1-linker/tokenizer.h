@@ -18,11 +18,13 @@ public:
 
     char readMode();
 
-    bool checkCount(int count);
+//    int readInstr();
 
-    bool checkSymbol(std::string symbol);
+    static bool checkMode(char mode);
 
-    bool checkInstr(int instr);
+    static bool checkSymbol(std::string symbol);
+
+    static bool checkInstr();
 
     void printAll();
 

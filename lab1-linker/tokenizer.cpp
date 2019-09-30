@@ -6,7 +6,11 @@
 #include <string>
 #include <iostream>
 
-#include <utility>
+#define READ_ELSE_DEFAULT(defaultVal) \
+    if(this->reachEnd()) {return defaultVal;}\
+    std::string word = this->readWord();\
+    if (word.empty()) {return defaultVal;}
+
 using namespace std;
 
 Tokenizer::Tokenizer(std::istream* input) {
@@ -16,6 +20,18 @@ Tokenizer::Tokenizer(std::istream* input) {
 }
 
 Tokenizer::~Tokenizer() {
+}
+
+bool Tokenizer::isDelimiter(char c) {
+    return c == '\t' || c == '\n' || c ==' ';
+}
+
+bool Tokenizer::isAlphabet(char c) {
+    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+}
+
+bool Tokenizer::isDigit(char c) {
+    return c >= '0' && c <= '9';;
 }
 
 bool Tokenizer::reachEnd() {
@@ -64,9 +80,7 @@ void Tokenizer::printAll() {
 }
 
 int Tokenizer::readInt() {
-    if (this->reachEnd()) return -1;
-    std::string word = this->readWord();
-    if (word.empty()) return -1;
+    READ_ELSE_DEFAULT(-1)
     int val = 0;
     for (auto c: word) {
         if (c < '0' || c > '9')
@@ -77,10 +91,18 @@ int Tokenizer::readInt() {
 }
 
 std::string Tokenizer::readSymbol() {
-    if (this->reachEnd()) return "";
-    std::string word = this->readWord();
-    if (word.empty()) return "";
+    READ_ELSE_DEFAULT("")
     return word;
+}
+
+char Tokenizer::readMode() {
+    READ_ELSE_DEFAULT(0)
+    if (word.length() != 1) return 0;
+    return word[0];
+}
+
+bool Tokenizer::checkMode(char mode) {
+    return mode == 'R' || mode == 'E' || mode == 'I' || mode == 'A';
 }
 
 bool Tokenizer::checkSymbol(std::string symbol) {
@@ -93,16 +115,8 @@ bool Tokenizer::checkSymbol(std::string symbol) {
     return true;
 }
 
-bool Tokenizer::isDelimiter(char c) {
-    return c == '\t' || c == '\n' || c ==' ';
-}
-
-bool Tokenizer::isAlphabet(char c) {
-    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
-}
-
-bool Tokenizer::isDigit(char c) {
-    return c >= '0' && c <= '9';;
+bool Tokenizer::checkInstr() {
+    return false;
 }
 
 
