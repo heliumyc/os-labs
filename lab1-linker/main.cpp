@@ -14,7 +14,6 @@ unordered_map<string, int> symbolTable; // using hash table rather than rbt. str
 
 void pass_1(istream& input, ostream& output) {
     Tokenizer tokenizer(&input);
-    tokenizer.printAll();
 }
 
 void pass_2(Tokenizer& tokenizer);

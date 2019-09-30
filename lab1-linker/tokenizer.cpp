@@ -76,7 +76,7 @@ void Tokenizer::printAll() {
     while (!(s=readWord()).empty()) {
         cout << line << ":" << offset+1-word_length << " " << s << endl;
     }
-    cout << line << offset+1;
+    cout << line << ":" << offset+1;
 }
 
 int Tokenizer::readInt() {
