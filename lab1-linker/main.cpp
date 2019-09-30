@@ -4,7 +4,7 @@
 #include <vector>
 #include "tokenizer.h"
 
-#define VERIFY_ELSE_BREAK(verification, error_statement) if(!verification) {error_statement;break;}
+#define VERIFY_ELSE_BREAK(verification, error_statement) if(!(verification)) {error_statement;break;}
 
 using namespace std;
 
@@ -13,12 +13,51 @@ unordered_map<string, int> symbolTable; // using hash table rather than rbt. str
 
 void pass_1(istream& input, ostream& output) {
     Tokenizer tokenizer(&input);
+    int offset = 0;
     for(int defCount = tokenizer.readInt(); defCount >= 0; defCount = tokenizer.readInt()) {
+
+        // def list
         VERIFY_ELSE_BREAK(Tokenizer::checkCount(defCount), {})
         for (int i = 0; i < defCount; ++i) {
             string symbol = tokenizer.readSymbol();
             VERIFY_ELSE_BREAK(Tokenizer::checkSymbol(symbol), {})
+
+            int addr = tokenizer.readInt();
+
+            if (symbolTable.find(symbol) != symbolTable.end()) {
+                // find multiple def! print ERROR!
+            }
+            else {
+                // insert symbol into table
+                symbolList.push_back(symbol);
+                symbolTable.insert({symbol, addr+offset});
+            }
         }
+
+        // use list
+        int useCount = tokenizer.readInt();
+        VERIFY_ELSE_BREAK(Tokenizer::checkCount(useCount), {})
+        for (int i = 0; i < useCount; ++i) {
+            string symbol = tokenizer.readSymbol();
+            VERIFY_ELSE_BREAK(Tokenizer::checkSymbol(symbol), {})
+        }
+
+        // instruction list
+        int instrCount = tokenizer.readInt();
+        //TODO check count
+        for (int i = 0; i < instrCount; ++i) {
+            char mode = tokenizer.readMode();
+            VERIFY_ELSE_BREAK(Tokenizer::checkMode(mode), {})
+
+            int instr = tokenizer.readInt();
+            VERIFY_ELSE_BREAK(Tokenizer::checkInstr(instr), {})
+        }
+        offset += instrCount;
+    }
+    output << "Symbol Table" << endl;
+    for (auto & it : symbolList) {
+        cout << it << "=" << symbolTable[it];
+        cout << endl;
     }
 }
 
