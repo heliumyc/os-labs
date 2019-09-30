@@ -60,16 +60,27 @@ void pass_1(istream& input, ostream& output) {
     }
 }
 
-void pass_2(Tokenizer& tokenizer);
+void pass_2(istream& input, ostream& output) {
+
+}
 
 int main(int argc, char *argv[]) {
     ifstream myFile;
-    myFile.open("input-1");
+    string filePath = "input-1";
+    myFile.open(filePath);
 
+    // pass 1
     pass_1(myFile, cout);
 
     myFile.close();
 
+    // reopen file resource
+    myFile.clear();
+    myFile.open(filePath);
+
+    // pass 2
+    pass_2(myFile, cout);
+    myFile.close();
 
     return 0;
 }
