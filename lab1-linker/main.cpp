@@ -53,10 +53,11 @@ void pass_1(istream& input, ostream& output) {
         }
         baseAddr += instrCount;
     }
+
     output << "Symbol Table" << endl;
     for (auto & it : symbolList) {
-        cout << it << "=" << symbolTable[it];
-        cout << endl;
+        output << it << "=" << symbolTable[it];
+        output << endl;
     }
 }
 
