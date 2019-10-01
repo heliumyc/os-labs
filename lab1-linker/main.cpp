@@ -5,14 +5,14 @@
 #include "parser.h"
 #include "errors.h"
 
-#define VERIFY_ELSE_BREAK(verification, error_statement) if(!(verification)) {error_statement;break;}
+#define VERIFY_ELSE_BREAK(verification, error_statement) if(!(verification)) {error_statement;return -1;}
 
 using namespace std;
 
 vector<string> symbolList; // helper array to maintain the insertion order of hash table below
 unordered_map<string, int> symbolTable; // using hash table rather than rbt. string for symbol, int for absolute addr
 
-void pass_1(istream& input, ostream& output) {
+int pass_1(istream& input, ostream& output) {
     Tokenizer tokenizer(&input);
     Error error(&output);
     int baseAddr = 0;
@@ -67,9 +67,11 @@ void pass_1(istream& input, ostream& output) {
         output << it << "=" << symbolTable[it];
         output << endl;
     }
+
+    return 1;
 }
 
-void pass_2(istream& input, ostream& output) {
+int pass_2(istream& input, ostream& output) {
     vector<Module> moduleList;
     Tokenizer tokenizer(&input);
     int baseAddr = 0;
@@ -117,6 +119,8 @@ void pass_2(istream& input, ostream& output) {
             output << setfill('0') << setw(3) << (modIt.address + i) << " " << modIt.instructionList[i] << endl;
         }
     }
+
+    return 1;
 }
 
 int main(int argc, char *argv[]) {
@@ -125,9 +129,12 @@ int main(int argc, char *argv[]) {
     myFile.open(filePath);
 
     // pass 1
-    pass_1(myFile, cout);
-
+    int flag = pass_1(myFile, cout);
     myFile.close();
+
+    if (flag < 0) {
+        return 0;
+    }
 
     // reopen file resource
     myFile.clear();
