@@ -19,7 +19,7 @@ public:
     vector<int> instructionList;
 
     // constructor
-    Module(int addr);
+    explicit Module(int addr);
 
     // TODO add error parsing phrase
     int convertInstruction(char instructionType, int instruction, unordered_map<string, int> &symbolTable);

@@ -89,6 +89,7 @@ void pass_2(istream& input, ostream& output) {
         int useCount = tokenizer.readInt();
         for (int i = 0; i < useCount; ++i) {
             string symbol = tokenizer.readSymbol();
+            module.useList.push_back(symbol);
         }
 
         // instruction list
@@ -101,7 +102,14 @@ void pass_2(istream& input, ostream& output) {
         }
         baseAddr += instrCount;
         moduleList.push_back(module);
+    }
 
+    output << endl;
+    output << "Memory Heap" << endl;
+    for(auto &modIt: moduleList) {
+        for (int i = 0; i < modIt.instructionList.size(); ++i) {
+            output << setfill('0') << setw(3) << (modIt.address + i) << " " << modIt.instructionList[i] << endl;
+        }
     }
 }
 
