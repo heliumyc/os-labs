@@ -18,16 +18,6 @@ enum SYNTAX_ERROR {
     TOO_MANY_INSTR
 };
 
-std::unordered_map<SYNTAX_ERROR, std::string> syntaxErrMsgMap = {
-        {NUMBER_EXPECTED, "NUMBER_EXPECTED"},
-        {SYMBOL_EXPECTED, "SYMBOL_EXPECTED"},
-        {ADDR_EXPECTED, "ADDR_EXPECTED"},
-        {SYM_TOO_LONG, "SYM_TOO_LONG"},
-        {TOO_MANY_DEF_IN_MODULE, "TOO_MANY_DEF_IN_MODULE"},
-        {TOO_MANY_USE_IN_MODULE, "TOO_MANY_USE_IN_MODULE"},
-        {TOO_MANY_INSTR, "TOO_MANY_INSTR"},
-};
-
 class Error {
 public:
     std::ostream* output{};
@@ -35,6 +25,16 @@ public:
 
     void logSyntaxError(SYNTAX_ERROR type, int line, int offset);
 
+private:
+    std::unordered_map<SYNTAX_ERROR, std::string> syntaxErrMsgMap = {
+            {NUMBER_EXPECTED, "NUMBER_EXPECTED"},
+            {SYMBOL_EXPECTED, "SYMBOL_EXPECTED"},
+            {ADDR_EXPECTED, "ADDR_EXPECTED"},
+            {SYM_TOO_LONG, "SYM_TOO_LONG"},
+            {TOO_MANY_DEF_IN_MODULE, "TOO_MANY_DEF_IN_MODULE"},
+            {TOO_MANY_USE_IN_MODULE, "TOO_MANY_USE_IN_MODULE"},
+            {TOO_MANY_INSTR, "TOO_MANY_INSTR"},
+    };
 };
 
 #endif //LINKER_ERRORS_H
