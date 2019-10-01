@@ -3,6 +3,7 @@
 #include <vector>
 #include "tokenizer.h"
 #include "parser.h"
+#include "errors.h"
 
 #define VERIFY_ELSE_BREAK(verification, error_statement) if(!(verification)) {error_statement;break;}
 
@@ -13,11 +14,17 @@ unordered_map<string, int> symbolTable; // using hash table rather than rbt. str
 
 void pass_1(istream& input, ostream& output) {
     Tokenizer tokenizer(&input);
+    Error error(&output);
     int baseAddr = 0;
     for(int defCount = tokenizer.readInt(); defCount >= 0; defCount = tokenizer.readInt()) {
 
         // def list
-        VERIFY_ELSE_BREAK(Tokenizer::checkCount(defCount), {})
+        VERIFY_ELSE_BREAK(Tokenizer::checkCount(defCount), {
+            error.logSyntaxError(NUMBER_EXPECTED,
+                    tokenizer->getLine(),
+                    tokenizer->getOffset()-tokenizer->getWordLength());
+        })
+
         for (int i = 0; i < defCount; ++i) {
             string symbol = tokenizer.readSymbol();
             VERIFY_ELSE_BREAK(Tokenizer::checkSymbol(symbol), {})
