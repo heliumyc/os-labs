@@ -127,4 +127,20 @@ bool Tokenizer::checkInstrCount(int count, int baseAddr) {
     return (count+baseAddr) <= 512 && (count+baseAddr) >= 0;
 }
 
+int Tokenizer::getLine() {
+    return this->line;
+}
+
+int Tokenizer::getOffset() {
+    return this->offset;
+}
+
+int Tokenizer::getWordLen() {
+    return this->wordLen;
+}
+
+int Tokenizer::getLastOffset() {
+    return this->offset-this->wordLen;
+}
+
 

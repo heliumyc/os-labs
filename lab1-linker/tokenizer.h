@@ -34,6 +34,14 @@ public:
 
     bool reachEnd();
 
+    int getLine();
+
+    int getOffset();
+
+    int getWordLen();
+
+    int getLastOffset();
+
 private:
     std::istream* input;
     std::string buffer;
