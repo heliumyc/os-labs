@@ -125,7 +125,7 @@ int pass_2(istream& input, ostream& output) {
 
 int main(int argc, char *argv[]) {
     ifstream myFile;
-    string filePath = "input-1";
+    string filePath = "test";
     myFile.open(filePath);
 
     // pass 1
