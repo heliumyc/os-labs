@@ -97,7 +97,7 @@ void pass_2(istream& input, ostream& output) {
             char mode = tokenizer.readMode();
             int instr = tokenizer.readInt();
             int convertedInstr = module.convertInstruction(mode, instr, symbolTable);
-            module.instructions.push_back(convertedInstr);
+            module.instructionList.push_back(convertedInstr);
         }
         baseAddr += instrCount;
         moduleList.push_back(module);

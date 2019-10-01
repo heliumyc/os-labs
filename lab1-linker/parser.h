@@ -16,7 +16,7 @@ public:
     int address;
     int size;
     vector<string> useList;
-    vector<int> instructions;
+    vector<int> instructionList;
 
     // constructor
     Module(int addr);
