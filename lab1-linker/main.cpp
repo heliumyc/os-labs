@@ -72,7 +72,6 @@ void pass_2(istream& input, ostream& output) {
         // def list
         for (int i = 0; i < defCount; ++i) {
             string symbol = tokenizer.readSymbol();
-
             int addr = tokenizer.readInt();
 
             if (symbolTable.find(symbol) != symbolTable.end()) {
