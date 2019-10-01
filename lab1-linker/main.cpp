@@ -21,8 +21,8 @@ void pass_1(istream& input, ostream& output) {
         // def list
         VERIFY_ELSE_BREAK(Tokenizer::checkCount(defCount), {
             error.logSyntaxError(NUMBER_EXPECTED,
-                    tokenizer->getLine(),
-                    tokenizer->getOffset()-tokenizer->getWordLength());
+                    tokenizer.getLine(),
+                    tokenizer.getOffset()-tokenizer.getWordLen());
         })
 
         for (int i = 0; i < defCount; ++i) {
