@@ -63,18 +63,18 @@ std::string Tokenizer::readWord() {
             }
         }
     }
-    this->word_length = 0;
+    this->wordLen = 0;
     for (int i = offset; (i < this->buffer.length()) && !isDelimiter(this->buffer[i]); ++i) {
-        this->word_length++;
+        this->wordLen++;
     }
-    this->offset += this->word_length;
-    return (this->buffer).substr(this->offset-this->word_length, this->word_length);
+    this->offset += this->wordLen;
+    return (this->buffer).substr(this->offset-this->wordLen, this->wordLen);
 }
 
 void Tokenizer::printAll() {
     string s;
     while (!(s=readWord()).empty()) {
-        cout << line << ":" << offset+1-word_length << " " << s << endl;
+        cout << line << ":" << offset + 1 - wordLen << " " << s << endl;
     }
     cout << line << ":" << offset+1;
 }

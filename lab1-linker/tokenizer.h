@@ -39,7 +39,7 @@ private:
     std::string buffer;
     int line = 0;
     int offset = 0;
-    int word_length = 0;
+    int wordLen = 0;
 
     bool newLine();
 
