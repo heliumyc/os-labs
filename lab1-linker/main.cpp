@@ -2,6 +2,7 @@
 #include <unordered_map>
 #include <vector>
 #include "tokenizer.h"
+#include "parser.h"
 
 #define VERIFY_ELSE_BREAK(verification, error_statement) if(!(verification)) {error_statement;break;}
 
@@ -62,7 +63,46 @@ void pass_1(istream& input, ostream& output) {
 }
 
 void pass_2(istream& input, ostream& output) {
+    vector<Module> moduleList;
+    Tokenizer tokenizer(&input);
+    int baseAddr = 0;
+    for(int defCount = tokenizer.readInt(); defCount >= 0; defCount = tokenizer.readInt()) {
+        // create module
+        Module module(baseAddr);
+        // def list
+        for (int i = 0; i < defCount; ++i) {
+            string symbol = tokenizer.readSymbol();
 
+            int addr = tokenizer.readInt();
+
+            if (symbolTable.find(symbol) != symbolTable.end()) {
+                // find multiple def! print ERROR!
+            }
+            else {
+                // insert symbol into table
+                symbolList.push_back(symbol);
+                symbolTable.insert({symbol, addr + baseAddr});
+            }
+        }
+
+        // use list
+        int useCount = tokenizer.readInt();
+        for (int i = 0; i < useCount; ++i) {
+            string symbol = tokenizer.readSymbol();
+        }
+
+        // instruction list
+        int instrCount = tokenizer.readInt();
+        for (int i = 0; i < instrCount; ++i) {
+            char mode = tokenizer.readMode();
+            int instr = tokenizer.readInt();
+            int convertedInstr = module.convertInstruction(mode, instr, symbolTable);
+            module.instructions.push_back(convertedInstr);
+        }
+        baseAddr += instrCount;
+        moduleList.push_back(module);
+
+    }
 }
 
 int main(int argc, char *argv[]) {
