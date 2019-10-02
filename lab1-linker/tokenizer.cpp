@@ -133,10 +133,6 @@ int Tokenizer::readInstrCount(int baseAddr) {
     return cnt;
 }
 
-int Tokenizer::readAddr() {
-    return 0;
-}
-
 std::string Tokenizer::readSymbol() {
     if (this->reachEnd()) {
         this->error->logSyntaxError(SYM_EXPECTED, this->getLine(), this->getOffset());
@@ -179,7 +175,7 @@ bool Tokenizer::checkSymbol(std::string symbol) {
     if (symbol.length() == 0) return false;
     if (symbol.length() > 16) return false;
     if (!isAlphabet(symbol[0])) return false;
-    for (int i = 1; i < symbol.length(); ++i) {
+    for (unsigned long i = 1; i < symbol.length(); ++i) {
         if (!isAlphabet(symbol[i]) && !isDigit(symbol[i])) return false;
     }
     return true;

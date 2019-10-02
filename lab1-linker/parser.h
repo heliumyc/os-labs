@@ -15,14 +15,20 @@ class Module {
 public:
     int address;
     int size;
+    vector<string> defList;
     vector<string> useList;
     vector<int> instructionList;
+    vector<string> errorMsgList;
+    unordered_map<string, int> symbolRefCount;
 
     // constructor
     explicit Module(int addr);
 
     // TODO add error parsing phrase
-    int convertInstruction(char instructionType, int instruction, unordered_map<string, int> &symbolTable);
+    int convertInstruction(char instructionType, int instruction,
+            unordered_map<string, int> &symbolTable,
+            unordered_map<string, int> &symbolRefCount,
+            string& errorMsg);
 
 };
 
