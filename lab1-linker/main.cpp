@@ -162,12 +162,12 @@ void printParsedResult(ostream& output) {
     }
 
     output << endl;
-    output << "Memory Heap" << endl;
+    output << "Memory Map" << endl;
     int moduleCnt = 0;
     for(auto &module: moduleList) {
         moduleCnt++;
         for (unsigned long i = 0; i < module.instructionList.size(); ++i) {
-            output << setfill('0') << setw(3) << (module.address + i) << " ";
+            output << setfill('0') << setw(3) << (module.address + i) << ": ";
             output << setw(4) << module.instructionList[i];
             if (!module.errorMsgList[i].empty()) {
                 output << module.errorMsgList[i];

@@ -44,17 +44,19 @@ int Module::convertInstruction(char instructionType, int instruction, unordered_
                 // check if symbol in the def list
                 if (symbolTable.find(symbol) != symbolTable.end()) {
                     convertedInstr = opcode*1000 + symbolTable[symbol];
-                    if (this->symbolRefCount.find(symbol) != this->symbolRefCount.end()) {
-                        this->symbolRefCount[symbol] += 1;
-                    }
-                    else {
-                        this->symbolRefCount.insert({symbol, 1});
-                    }
                 }
                 else {
                     // use symbol not found in def list, 0 used
                     errorMsg = " Error: " + symbol + " is not defined; zero used";
                     convertedInstr = opcode*1000 + 0;
+                }
+
+                // even if it is not defined but use, still count it, see input-5
+                if (this->symbolRefCount.find(symbol) != this->symbolRefCount.end()) {
+                    this->symbolRefCount[symbol] += 1;
+                }
+                else {
+                    this->symbolRefCount.insert({symbol, 1});
                 }
             }
             else {
@@ -84,7 +86,7 @@ int Module::convertInstruction(char instructionType, int instruction, unordered_
                 break;
             }
             // check if it is above machine size
-            if (instruction > 512) {
+            if (operand > 512) {
                 convertedInstr = (instruction/1000)*1000 + 0;
                 errorMsg = " Error: Absolute address exceeds machine size; zero used";
             }
