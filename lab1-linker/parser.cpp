@@ -9,8 +9,7 @@ Module::Module(int addr) {
     this->address = addr;
 }
 
-int Module::convertInstruction(char instructionType, int instruction,
-        unordered_map<string, int> &symbolTable, unordered_map<string, int> &symbolRefCount, string& errorMsg) {
+int Module::convertInstruction(char instructionType, int instruction, unordered_map<string, int> &symbolTable, string& errorMsg) {
 
     // check if op is valid
     int convertedInstr = 0;

@@ -25,10 +25,7 @@ public:
     explicit Module(int addr);
 
     // TODO add error parsing phrase
-    int convertInstruction(char instructionType, int instruction,
-            unordered_map<string, int> &symbolTable,
-            unordered_map<string, int> &symbolRefCount,
-            string& errorMsg);
+    int convertInstruction(char instructionType, int instruction, unordered_map<string, int> &symbolTable, string& errorMsg);
 
 };
 

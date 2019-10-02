@@ -29,7 +29,7 @@ bool Tokenizer::isAlphabet(char c) {
 }
 
 bool Tokenizer::isDigit(char c) {
-    return c >= '0' && c <= '9';;
+    return c >= '0' && c <= '9';
 }
 
 bool Tokenizer::reachEnd() {
@@ -106,7 +106,7 @@ int Tokenizer::readInt(bool allowEOF) {
 int Tokenizer::readDefCount() {
     int cnt = this->readInt(true);
     if (cnt < 0) return cnt;
-    if (!Tokenizer::checkUseCount(cnt)) {
+    if (!Tokenizer::checkDefCount(cnt)) {
         this->error->logSyntaxError(TOO_MANY_DEF_IN_MODULE, this->getLine(), this->getLastOffset());
         return -1;
     }
@@ -181,10 +181,6 @@ bool Tokenizer::checkSymbol(std::string symbol) {
     return true;
 }
 
-bool Tokenizer::checkInstr(int instr) {
-    return instr >= 0 && instr <= 9999;
-}
-
 bool Tokenizer::checkUseCount(int count) {
     return count >= 0 && count <= 16;
 }
@@ -212,9 +208,3 @@ int Tokenizer::getWordLen() {
 int Tokenizer::getLastOffset() {
     return this->offset-this->wordLen+1;
 }
-
-bool Tokenizer::checkAddr(int addr) {
-    return addr >= 0;
-}
-
-

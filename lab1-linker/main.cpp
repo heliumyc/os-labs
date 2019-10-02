@@ -3,7 +3,6 @@
 #include <vector>
 #include "tokenizer.h"
 #include "parser.h"
-#include "errors.h"
 
 #define VERIFY_ELSE_BREAK(verification, fail) if(!(verification)) {failFlag = fail; break;}
 
@@ -18,7 +17,6 @@ unordered_map<string, string> errorMsgOfSymbol;
 vector<Module> moduleList;
 
 unordered_map<string, int> symbolUsageCount;
-unordered_map<string, int> symbolRefCount;
 
 int pass_1(istream& input, ostream& output) {
     Tokenizer tokenizer(&input, &output);
@@ -141,7 +139,7 @@ int pass_2(istream& input, ostream& output) {
             char mode = tokenizer.readMode();
             int instr = tokenizer.readInt(false);
             string errorMsg;
-            int convertedInstr = module.convertInstruction(mode, instr, symbolTable, symbolRefCount, errorMsg);
+            int convertedInstr = module.convertInstruction(mode, instr, symbolTable, errorMsg);
             module.instructionList.push_back(convertedInstr);
             module.errorMsgList.push_back(errorMsg);
         }
