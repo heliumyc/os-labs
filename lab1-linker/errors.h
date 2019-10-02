@@ -5,7 +5,7 @@
 #ifndef LINKER_ERRORS_H
 #define LINKER_ERRORS_H
 
-#import <ostream>
+#include <ostream>
 #include <unordered_map>
 
 enum SYNTAX_ERROR {
