@@ -1,7 +1,7 @@
 # os lab 1 - linker
 implement a two pass linker in C++
 
-might used some features in c++17, so must compile with std=c++17
+might have used some features in c++17, so must compile with std=c++17
 
 full compile command is below
 ```$xslt
