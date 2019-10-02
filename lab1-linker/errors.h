@@ -9,8 +9,8 @@
 #include <unordered_map>
 
 enum SYNTAX_ERROR {
-    NUMBER_EXPECTED,
-    SYMBOL_EXPECTED,
+    NUM_EXPECTED,
+    SYM_EXPECTED,
     ADDR_EXPECTED,
     SYM_TOO_LONG,
     TOO_MANY_DEF_IN_MODULE,
@@ -27,8 +27,8 @@ public:
 
 private:
     std::unordered_map<SYNTAX_ERROR, std::string> syntaxErrMsgMap = {
-            {NUMBER_EXPECTED, "NUMBER_EXPECTED"},
-            {SYMBOL_EXPECTED, "SYMBOL_EXPECTED"},
+            {NUM_EXPECTED, "NUM_EXPECTED"},
+            {SYM_EXPECTED, "SYM_EXPECTED"},
             {ADDR_EXPECTED, "ADDR_EXPECTED"},
             {SYM_TOO_LONG, "SYM_TOO_LONG"},
             {TOO_MANY_DEF_IN_MODULE, "TOO_MANY_DEF_IN_MODULE"},

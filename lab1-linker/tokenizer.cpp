@@ -6,20 +6,18 @@
 #include <string>
 #include <iostream>
 
-#define READ_ELSE_DEFAULT(defaultVal) \
-    if(this->reachEnd()) {return defaultVal;}\
-    std::string word = this->readWord();\
-    if (word.empty()) {return defaultVal;}
-
 using namespace std;
 
-Tokenizer::Tokenizer(std::istream* input) {
+Tokenizer::Tokenizer(std::istream* input, std::ostream* output) {
     this->input = input;
+    this->output = output;
     this->line = 0;
     this->offset = 1;
+    this->error = new Error(output);
 }
 
 Tokenizer::~Tokenizer() {
+    delete this->error;
 }
 
 bool Tokenizer::isDelimiter(char c) {
@@ -49,7 +47,7 @@ bool Tokenizer::newLine() {
 
 std::string Tokenizer::readWord() {
     if (this->reachEnd()) return "";
-    if (this->buffer.empty() || this->offset == this->buffer.length()) {
+    while (this->buffer.empty() || this->offset == this->buffer.length()) {
         bool hasNext = this->newLine();
         if (!hasNext) return "";
     }
@@ -79,25 +77,97 @@ void Tokenizer::printAll() {
     cout << line << ":" << offset+1;
 }
 
-int Tokenizer::readInt() {
-    READ_ELSE_DEFAULT(-1)
+int Tokenizer::readInt(bool allowEOF) {
+    if (this->reachEnd()) {
+        if (!allowEOF) {
+            this->error->logSyntaxError(NUM_EXPECTED, this->getLine(), this->getOffset());
+        }
+        return -2;
+    }
+    std::string word = this->readWord();
+    if (word.empty()) {
+        if (!allowEOF) {
+            this->error->logSyntaxError(NUM_EXPECTED, this->getLine(), this->getOffset());
+        }
+        return -2;
+    }
+
     int val = 0;
     for (auto c: word) {
-        if (c < '0' || c > '9')
+        if (c < '0' || c > '9') {
+            this->error->logSyntaxError(NUM_EXPECTED, this->getLine(), this->getLastOffset());
             return -1;
+        }
         val = val*10 + (c - '0');
     }
     return val;
 }
 
+int Tokenizer::readDefCount() {
+    int cnt = this->readInt(true);
+    if (cnt < 0) return cnt;
+    if (!Tokenizer::checkUseCount(cnt)) {
+        this->error->logSyntaxError(TOO_MANY_DEF_IN_MODULE, this->getLine(), this->getLastOffset());
+        return -1;
+    }
+    return cnt;
+}
+
+int Tokenizer::readUseCount() {
+    int cnt = this->readInt(false);
+    if (cnt < 0) return -1;
+    if (!Tokenizer::checkUseCount(cnt)) {
+        this->error->logSyntaxError(TOO_MANY_USE_IN_MODULE, this->getLine(), this->getLastOffset());
+        return -1;
+    }
+    return cnt;
+}
+
+int Tokenizer::readInstrCount(int baseAddr) {
+    int cnt = this->readInt(false);
+    if (cnt < 0) return -1;
+    if (!Tokenizer::checkInstrCount(cnt, baseAddr)) {
+        this->error->logSyntaxError(TOO_MANY_INSTR, this->getLine(), this->getLastOffset());
+        return -1;
+    }
+    return cnt;
+}
+
+int Tokenizer::readAddr() {
+    return 0;
+}
+
 std::string Tokenizer::readSymbol() {
-    READ_ELSE_DEFAULT("")
+    if (this->reachEnd()) {
+        this->error->logSyntaxError(SYM_EXPECTED, this->getLine(), this->getOffset());
+        return "";
+    }
+    std::string word = this->readWord();
+    if (word.empty()) {
+        this->error->logSyntaxError(SYM_EXPECTED, this->getLine(), this->getOffset());
+        return "";
+    }
+    if (!Tokenizer::checkSymbol(word)) {
+        this->error->logSyntaxError(SYM_EXPECTED, this->getLine(), this->getLastOffset());
+        return "";
+    }
     return word;
 }
 
 char Tokenizer::readMode() {
-    READ_ELSE_DEFAULT(0)
-    if (word.length() != 1) return 0;
+    if (this->reachEnd()) {
+        this->error->logSyntaxError(ADDR_EXPECTED, this->getLine(), this->getOffset());
+        return 0;
+    }
+    std::string word = this->readWord();
+    if (word.empty()) {
+        this->error->logSyntaxError(ADDR_EXPECTED, this->getLine(), this->getOffset());
+        return 0;
+    }
+    if (word.length() != 1 || !Tokenizer::checkMode(word[0])) {
+        this->error->logSyntaxError(ADDR_EXPECTED, this->getLine(), this->getOffset());
+        return 0;
+    }
     return word[0];
 }
 
@@ -119,7 +189,11 @@ bool Tokenizer::checkInstr(int instr) {
     return instr >= 0 && instr <= 9999;
 }
 
-bool Tokenizer::checkCount(int count) {
+bool Tokenizer::checkUseCount(int count) {
+    return count >= 0 && count <= 16;
+}
+
+bool Tokenizer::checkDefCount(int count) {
     return count >= 0 && count <= 16;
 }
 
@@ -132,7 +206,7 @@ int Tokenizer::getLine() {
 }
 
 int Tokenizer::getOffset() {
-    return this->offset;
+    return this->offset+1;
 }
 
 int Tokenizer::getWordLen() {
@@ -140,7 +214,11 @@ int Tokenizer::getWordLen() {
 }
 
 int Tokenizer::getLastOffset() {
-    return this->offset-this->wordLen;
+    return this->offset-this->wordLen+1;
+}
+
+bool Tokenizer::checkAddr(int addr) {
+    return addr >= 0;
 }
 
 

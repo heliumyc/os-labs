@@ -6,13 +6,22 @@
 #define LINKER_TOKENIZER_H
 
 #include <fstream>
+#include "errors.h"
 
 class Tokenizer {
 public:
-    Tokenizer(std::istream* input);
+    Tokenizer(std::istream* input, std::ostream* output);
     ~Tokenizer();
 
-    int readInt();
+    int readInt(bool allowEOF);
+
+    int readDefCount();
+
+    int readUseCount();
+
+    int readInstrCount(int baseAddr);
+
+    int readAddr();
 
     std::string readSymbol();
 
@@ -20,7 +29,11 @@ public:
 
 //    int readInstr();
 
-    static bool checkCount(int count);
+    static bool checkDefCount(int count);
+
+    static bool checkUseCount(int count);
+
+    static bool checkAddr(int addr);
 
     static bool checkMode(char mode);
 
@@ -44,10 +57,13 @@ public:
 
 private:
     std::istream* input;
+    std::ostream* output;
     std::string buffer;
     int line = 0;
     int offset = 0;
     int wordLen = 0;
+
+    Error* error;
 
     bool newLine();
 

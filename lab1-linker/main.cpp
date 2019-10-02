@@ -5,7 +5,7 @@
 #include "parser.h"
 #include "errors.h"
 
-#define VERIFY_ELSE_BREAK(verification, error_statement) if(!(verification)) {error_statement;return -1;}
+#define VERIFY_ELSE_BREAK(verification, fail) if(!(verification)) {failFlag = fail; break;}
 
 using namespace std;
 
@@ -13,23 +13,27 @@ vector<string> symbolList; // helper array to maintain the insertion order of ha
 unordered_map<string, int> symbolTable; // using hash table rather than rbt. string for symbol, int for absolute addr
 
 int pass_1(istream& input, ostream& output) {
-    Tokenizer tokenizer(&input);
-    Error error(&output);
+    Tokenizer tokenizer(&input, &output);
     int baseAddr = 0;
-    for(int defCount = tokenizer.readInt(); defCount >= 0; defCount = tokenizer.readInt()) {
-
+    bool failFlag = false;
+    while(!tokenizer.reachEnd()) {
+        int defCount = tokenizer.readDefCount();
         // def list
-        VERIFY_ELSE_BREAK(Tokenizer::checkCount(defCount), {
-            error.logSyntaxError(NUMBER_EXPECTED,
-                    tokenizer.getLine(),
-                    tokenizer.getOffset()-tokenizer.getWordLen());
-        })
+        if (defCount == -1) {
+            failFlag = true;
+            break;
+        } else if (defCount == -2) {
+            failFlag = false;
+            break;
+        }
+//        VERIFY_ELSE_BREAK(defCount >= 0, false)
 
         for (int i = 0; i < defCount; ++i) {
             string symbol = tokenizer.readSymbol();
-            VERIFY_ELSE_BREAK(Tokenizer::checkSymbol(symbol), {})
+            VERIFY_ELSE_BREAK(!symbol.empty(), true)
 
-            int addr = tokenizer.readInt();
+            int addr = tokenizer.readInt(false);
+            VERIFY_ELSE_BREAK(addr >= 0, true)
 
             if (symbolTable.find(symbol) != symbolTable.end()) {
                 // find multiple def! print ERROR!
@@ -40,26 +44,33 @@ int pass_1(istream& input, ostream& output) {
                 symbolTable.insert({symbol, addr + baseAddr});
             }
         }
+        if (failFlag) break;
 
         // use list
-        int useCount = tokenizer.readInt();
-        VERIFY_ELSE_BREAK(Tokenizer::checkCount(useCount), {})
+        int useCount = tokenizer.readUseCount();
+        VERIFY_ELSE_BREAK(useCount >= 0, true)
         for (int i = 0; i < useCount; ++i) {
             string symbol = tokenizer.readSymbol();
-            VERIFY_ELSE_BREAK(Tokenizer::checkSymbol(symbol), {})
+            VERIFY_ELSE_BREAK(!symbol.empty(), true)
         }
+        if (failFlag) break;
 
         // instruction list
-        int instrCount = tokenizer.readInt();
-        VERIFY_ELSE_BREAK(Tokenizer::checkInstrCount(instrCount, baseAddr), {})
+        int instrCount = tokenizer.readInstrCount(baseAddr);
+        VERIFY_ELSE_BREAK(instrCount >= 0, true)
         for (int i = 0; i < instrCount; ++i) {
             char mode = tokenizer.readMode();
-            VERIFY_ELSE_BREAK(Tokenizer::checkMode(mode), {})
+            VERIFY_ELSE_BREAK(mode != 0, true)
 
-            int instr = tokenizer.readInt();
-            VERIFY_ELSE_BREAK(Tokenizer::checkInstr(instr), {})
+            int instr = tokenizer.readInt(false);
+            VERIFY_ELSE_BREAK(instr >= 0, true)
         }
+        if (failFlag) break;
         baseAddr += instrCount;
+    }
+
+    if (failFlag) {
+        return -1;
     }
 
     output << "Symbol Table" << endl;
@@ -73,15 +84,17 @@ int pass_1(istream& input, ostream& output) {
 
 int pass_2(istream& input, ostream& output) {
     vector<Module> moduleList;
-    Tokenizer tokenizer(&input);
+    Tokenizer tokenizer(&input, &output);
     int baseAddr = 0;
-    for(int defCount = tokenizer.readInt(); defCount >= 0; defCount = tokenizer.readInt()) {
+    while(!tokenizer.reachEnd()) {
         // create module
         Module module(baseAddr);
         // def list
+        int defCount = tokenizer.readDefCount();
+        if (defCount < 0) break;
         for (int i = 0; i < defCount; ++i) {
             string symbol = tokenizer.readSymbol();
-            int addr = tokenizer.readInt();
+            int addr = tokenizer.readInt(false);
 
             if (symbolTable.find(symbol) != symbolTable.end()) {
                 // find multiple def! print ERROR!
@@ -94,17 +107,17 @@ int pass_2(istream& input, ostream& output) {
         }
 
         // use list
-        int useCount = tokenizer.readInt();
+        int useCount = tokenizer.readUseCount();
         for (int i = 0; i < useCount; ++i) {
             string symbol = tokenizer.readSymbol();
             module.useList.push_back(symbol);
         }
 
         // instruction list
-        int instrCount = tokenizer.readInt();
+        int instrCount = tokenizer.readInstrCount(baseAddr);
         for (int i = 0; i < instrCount; ++i) {
             char mode = tokenizer.readMode();
-            int instr = tokenizer.readInt();
+            int instr = tokenizer.readInt(false);
             int convertedInstr = module.convertInstruction(mode, instr, symbolTable);
             module.instructionList.push_back(convertedInstr);
         }
@@ -136,6 +149,7 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
+    cout << flush;
     // reopen file resource
     myFile.clear();
     myFile.open(filePath);
