@@ -85,9 +85,9 @@ int pass_1(istream& input, ostream& output) {
         for (const auto& sym: symbolsInCurModule) {
             if (symbolTable[sym] > baseAddr+instrCount-1) {
                 output << "Warning: Module "<< moduleCnt << ": ";
-                output << sym << " too big " << symbolTable[sym] << " (max=" << instrCount-1;
+                output << sym << " too big " << symbolTable[sym]-baseAddr  << " (max=" << max(0, instrCount-1);
                 output << ") assume zero relative" << endl;
-                symbolTable[sym] = 0;
+                symbolTable[sym] = baseAddr + 0;
             }
         }
 
