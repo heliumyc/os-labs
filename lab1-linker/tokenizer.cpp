@@ -143,6 +143,10 @@ std::string Tokenizer::readSymbol() {
         this->error->logSyntaxError(SYM_EXPECTED, this->getLine(), this->getOffset());
         return "";
     }
+    if (!Tokenizer::checkSymbolLength(word)) {
+        this->error->logSyntaxError(SYM_TOO_LONG, this->getLine(), this->getLastOffset());
+        return "";
+    }
     if (!Tokenizer::checkSymbol(word)) {
         this->error->logSyntaxError(SYM_EXPECTED, this->getLine(), this->getLastOffset());
         return "";
@@ -171,14 +175,17 @@ bool Tokenizer::checkMode(char mode) {
     return mode == 'R' || mode == 'E' || mode == 'I' || mode == 'A';
 }
 
-bool Tokenizer::checkSymbol(std::string symbol) {
+bool Tokenizer::checkSymbol(std::string& symbol) {
     if (symbol.length() == 0) return false;
-    if (symbol.length() > 16) return false;
     if (!isAlphabet(symbol[0])) return false;
     for (unsigned long i = 1; i < symbol.length(); ++i) {
         if (!isAlphabet(symbol[i]) && !isDigit(symbol[i])) return false;
     }
     return true;
+}
+
+bool Tokenizer::checkSymbolLength(std::string &symbol) {
+    return symbol.length() <= 16;
 }
 
 bool Tokenizer::checkUseCount(int count) {

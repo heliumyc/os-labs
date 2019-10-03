@@ -37,7 +37,9 @@ public:
 
     static bool checkMode(char mode);
 
-    static bool checkSymbol(std::string symbol);
+    static bool checkSymbol(std::string& symbol);
+
+    static bool checkSymbolLength(std::string& symbol);
 
     static bool checkInstrCount(int count, int baseAddr);
 
