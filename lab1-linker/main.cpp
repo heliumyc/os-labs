@@ -152,6 +152,7 @@ int pass_2(istream& input, ostream& output) {
 }
 
 void printParsedResult(ostream& output) {
+    if (moduleList.size() == 1 && moduleList[0].instructionList.size() == 0) return;
 
     output << "Symbol Table" << endl;
     for (auto & it : symbolList) {
