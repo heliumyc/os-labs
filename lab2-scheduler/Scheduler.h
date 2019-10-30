@@ -5,19 +5,23 @@
 #ifndef LAB2_SCHEDULER_SCHEDULER_H
 #define LAB2_SCHEDULER_SCHEDULER_H
 
-#include "../Process.h"
+#include <queue>
+#include "Process.h"
 
-enum scheduler_t {FCFS, LCLS, SRTF, RR, PRIO, PREPRIO};
+enum class SchedulerEnum {FCFS, LCFS, SRTF, RR, PRIO, PREPRIO};
 
 class Scheduler {
-    virtual void addProcess(Process* p) = 0;
-    virtual Process* getNext() = 0;
-    virtual void testPreempt(Process* p, int curtime) = 0;
+    virtual void AddProcess(Process* p) = 0;
+    virtual Process* GetNext() = 0;
+    virtual void TryPreempt(Process* p, int curtime) = 0;
+
+protected:
+    std::queue<Process*> runQueue;
 };
 
 class SchedulerFactory {
 public:
-    Scheduler* createScheduler(scheduler_t type);
+    static Scheduler* CreateScheduler(SchedulerEnum type);
 };
 
 #endif //LAB2_SCHEDULER_SCHEDULER_H

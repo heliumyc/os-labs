@@ -3,3 +3,15 @@
 //
 
 #include "Priority_Scheduler.h"
+
+void Priority_Scheduler::AddProcess(Process *p) {
+
+}
+
+Process *Priority_Scheduler::GetNext() {
+    return nullptr;
+}
+
+void Priority_Scheduler::TryPreempt(Process *p, int curtime) {
+
+}

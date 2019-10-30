@@ -3,3 +3,15 @@
 //
 
 #include "SRTF_Scheduler.h"
+
+void SRTF_SCheduler::AddProcess(Process *p) {
+
+}
+
+Process *SRTF_SCheduler::GetNext() {
+    return nullptr;
+}
+
+void SRTF_SCheduler::TryPreempt(Process *p, int curtime) {
+
+}

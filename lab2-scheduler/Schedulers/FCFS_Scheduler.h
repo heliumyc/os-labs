@@ -5,10 +5,12 @@
 #ifndef LAB2_SCHEDULER_FCFS_SCHEDULER_H
 #define LAB2_SCHEDULER_FCFS_SCHEDULER_H
 
+#include "../Scheduler.h"
 
-class FCFS_Scheduler {
-
+class FCFS_Scheduler: public Scheduler {
+    void AddProcess(Process* p) override;
+    Process* GetNext() override;
+    void TryPreempt(Process* p, int curtime) override;
 };
-
 
 #endif //LAB2_SCHEDULER_FCFS_SCHEDULER_H

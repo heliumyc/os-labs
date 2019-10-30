@@ -3,3 +3,15 @@
 //
 
 #include "RoundRobin_Scheduler.h"
+
+void RounRobin_Scheduler::AddProcess(Process *p) {
+
+}
+
+Process *RounRobin_Scheduler::GetNext() {
+    return nullptr;
+}
+
+void RounRobin_Scheduler::TryPreempt(Process *p, int curtime) {
+
+}

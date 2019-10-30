@@ -6,8 +6,12 @@
 #define LAB2_SCHEDULER_ROUNDROBIN_SCHEDULER_H
 
 
-class RoundRobin_Scheduler {
+#include "../Scheduler.h"
 
+class RounRobin_Scheduler: public Scheduler {
+    void AddProcess(Process* p) override;
+    Process* GetNext() override;
+    void TryPreempt(Process* p, int curtime) override;
 };
 
 

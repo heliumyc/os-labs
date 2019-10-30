@@ -3,3 +3,7 @@
 //
 
 #include "Event.h"
+
+Event::Event(Process *event_process, int event_timestamp, StateEnum transition_from, StateEnum transition_to)
+        : event_process(event_process), event_timestamp(event_timestamp), transition_from(transition_from),
+          transition_to(transition_to) {}

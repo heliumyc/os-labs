@@ -7,6 +7,18 @@
 
 
 class Process {
+public:
+    int arrival_time;
+    int total_cpu_time;
+    int cpu_burst;
+    int io_burst;
+
+    int remain_cpu_time;
+
+    int static_priority;
+    int dynamic_priority;
+
+    Process(int arrival_time, int total_cpu_time, int cpu_burst, int io_burst);
 
 };
 

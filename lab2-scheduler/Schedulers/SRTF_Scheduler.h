@@ -6,8 +6,12 @@
 #define LAB2_SCHEDULER_SRTF_SCHEDULER_H
 
 
-class SRTF_Scheduler {
+#include "../Scheduler.h"
 
+class SRTF_SCheduler: public Scheduler {
+    void AddProcess(Process* p) override;
+    Process* GetNext() override;
+    void TryPreempt(Process* p, int curtime) override;
 };
 
 

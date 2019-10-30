@@ -6,9 +6,12 @@
 #define LAB2_SCHEDULER_PRIORITY_SCHEDULER_H
 
 
-class Priority_Scheduler {
+#include "../Scheduler.h"
 
+class Priority_Scheduler: public Scheduler {
+    void AddProcess(Process* p) override;
+    Process* GetNext() override;
+    void TryPreempt(Process* p, int curtime) override;
 };
-
 
 #endif //LAB2_SCHEDULER_PRIORITY_SCHEDULER_H
