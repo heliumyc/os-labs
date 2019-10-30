@@ -24,7 +24,6 @@ protected:
 public:
     void setQuantum(int quantum);
     void setMaxPriority(int maxPriority);
-
 };
 
 class SchedulerFactory {

@@ -84,21 +84,51 @@ void ReadArgs(int argc, char **argv) {
 
 void Simulation(queue<Event*>& event_queue, Scheduler& scheduler) {
     Event* cur_event;
+    int cur_time;
+    int time_in_previous_state;
+    bool call_scheduler = false;
+    Process* cur_running_process = nullptr;
 
-    cur_event = event_queue.front();
-    event_queue.pop();
+    while (!event_queue.empty()) {
+        cur_event = event_queue.front();
+        event_queue.pop();
+        Process* process = cur_event->event_process;
+        cur_time = cur_event->event_timestamp;
+        time_in_previous_state = cur_time - process->state_timestamp;
 
-    switch(cur_event->transition_to) {
-        case StateEnum::READY:
-            break;
-        case StateEnum::RUN:
-            break;
-        case StateEnum::BLOCK:
-            break;
-        case StateEnum::PREEMPT:
-            break;
-        default:
-            break;
+        switch(cur_event->transition_to) {
+            case StateEnum::READY:
+                call_scheduler = true;
+                break;
+            case StateEnum::RUN:
+                break;
+            case StateEnum::BLOCK:
+                call_scheduler = true;
+                break;
+            case StateEnum::PREEMPT:
+                call_scheduler = true;
+                break;
+            default:
+                break;
+        }
+
+        delete cur_event;
+        cur_event = nullptr;
+
+        if (call_scheduler) {
+            if (event_queue.front()->event_timestamp == cur_time) {
+                continue;
+            }
+            call_scheduler = false;
+            if (cur_running_process == nullptr) {
+                cur_running_process = scheduler.GetNext();
+                if (cur_running_process == nullptr) {
+                    continue;
+                }
+                // create event
+
+            }
+        }
     }
 
 }
@@ -113,10 +143,11 @@ int main(int argc, char **argv) {
     // read processes
     ifstream ifs_input_file(INPUT_FILE);
     Process* process_ptr = nullptr;
-    int arriveT, totalT, cpuBurst, ioBurst;
-    while (ifs_input_file >> arriveT) {
-        ifs_input_file >> totalT >> cpuBurst >> ioBurst;
-        process_ptr = new Process(arriveT, totalT, cpuBurst, ioBurst);
+    int arrival_time, total_time, cpu_burst, io_burst;
+    int pid = 0;
+    while (ifs_input_file >> arrival_time) {
+        ifs_input_file >> total_time >> cpu_burst >> io_burst;
+        process_ptr = new Process(pid++, arrival_time, total_time, cpu_burst, io_burst);
         process_pool.push_back(process_ptr);
     }
     ifs_input_file.close();
@@ -138,14 +169,16 @@ int main(int argc, char **argv) {
         p->dynamic_priority = p->static_priority - 1;
     }
 
-    // we cannot assure the process is listed in ascending order of arrival time
-    std::stable_sort(process_pool.begin(), process_pool.end(),
-                     [](Process* a, Process* b) {return a->arrival_time < b->arrival_time; });
+    // we cannot assure the process is listed in ascending order of arrival time, so just sort it!
+//    std::stable_sort(process_pool.begin(), process_pool.end(),
+//                     [](Process* a, Process* b) {return a->arrival_time < b->arrival_time; });
+    /// according to the reference program, if it is not increasing, then raise error
 
     Event* cur_event;
     for (auto p : process_pool) {
         cur_event = new Event(p, p->arrival_time, StateEnum::CREATE, StateEnum::READY);
         event_queue.push(cur_event);
+        p->state_timestamp = p->arrival_time;
     }
 
     Scheduler* scheduler = SchedulerFactory::CreateScheduler(SCHED_SPEC);
@@ -153,5 +186,4 @@ int main(int argc, char **argv) {
     scheduler->setMaxPriority(MAX_PRIORITY);
 
     Simulation(event_queue, *scheduler);
-
 }

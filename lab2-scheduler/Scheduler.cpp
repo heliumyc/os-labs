@@ -30,3 +30,7 @@ void Scheduler::setQuantum(int quantum) {
 void Scheduler::setMaxPriority(int maxPriority) {
     max_priority = maxPriority;
 }
+
+Process *Scheduler::GetNextProcess() {
+    return nullptr;
+}
