@@ -23,3 +23,10 @@ Scheduler *SchedulerFactory::CreateScheduler(SchedulerEnum type) {
     }
 }
 
+void Scheduler::setQuantum(int quantum) {
+    Scheduler::quantum = quantum;
+}
+
+void Scheduler::setMaxPriority(int maxPriority) {
+    max_priority = maxPriority;
+}

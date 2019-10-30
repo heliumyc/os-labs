@@ -3,10 +3,7 @@
 //
 #include <cstdio>
 #include <iostream>
-
-#include <cstdio>
 #include <unistd.h>
-#include <sstream>
 #include <vector>
 #include <fstream>
 #include "Scheduler.h"
@@ -16,56 +13,29 @@ using namespace std;
 
 bool IS_VERBOSE = false;
 SchedulerEnum SCHED_SPEC;
-int QUANTUM_NUM;
-int PRIOS_NUM = 4;
+int QUANTUM;
+int MAX_PRIORITY = 4;
 string INPUT_FILE;
 string RAND_FILE;
 
-vector<long> RANDVALS;
+vector<int> RANDVALS;
 int RANDVALS_SIZE;
-int OBF = 0;
-
-vector<Process*> PROCESS_POOL;
-queue<Event*> eventQueue;
+int _obf = 0;
 
 int MyRandom(int burst) {
-    return 1+RANDVALS[(OBF++)%RANDVALS_SIZE]%burst;
+    return 1+ RANDVALS[(_obf++) % RANDVALS_SIZE] % burst;
 }
 
-void Simulation() {
-    // init
-    Event* curEvt;
-    for (auto p : PROCESS_POOL) {
-        curEvt = new Event(p, p->arrival_time, StateEnum::CREATE, StateEnum::READY);
-        eventQueue.push(curEvt);
-    }
-//    queue<Event*> q(eventQueue);
-    curEvt = eventQueue.front();
-    eventQueue.pop();
-
-    switch(curEvt->transitionTo) {
-        case StateEnum ::READY:
-            break;
-        case StateEnum ::RUN:
-            break;
-        case StateEnum ::BLOCK:
-            break;
-        case StateEnum ::PREEMPT:
-            break;
-    }
-
-}
-
-int main(int argc, char **argv) {
+void ReadArgs(int argc, char **argv) {
     int opt;
-    char* schedOpt = nullptr;
+    char* sched_opt = nullptr;
     while ((opt = getopt(argc, argv, "vs:")) != -1) {
         switch (opt) {
             case 'v':
                 IS_VERBOSE = true;
                 break;
             case 's':
-                schedOpt = optarg;
+                sched_opt = optarg;
                 break;
             case '?':
                 cout<<"unknown option";
@@ -76,10 +46,10 @@ int main(int argc, char **argv) {
     }
 
     /// no extra error is parsed, only valid arguments is consider for simplicity
-    char* readPtr = schedOpt;
+    char* read_ptr = sched_opt;
     // process scheduler type
-    if (readPtr != nullptr && *readPtr != '\0') {
-        switch (readPtr[0]) {
+    if (read_ptr != nullptr && *read_ptr != '\0') {
+        switch (read_ptr[0]) {
             case 'F':
                 SCHED_SPEC = SchedulerEnum::FCFS; break;
             case 'L':
@@ -94,14 +64,14 @@ int main(int argc, char **argv) {
                 SCHED_SPEC = SchedulerEnum::PREPRIO; break;
             default: break;
         }
-        readPtr++;
+        read_ptr++;
         // read priority number if there is any
-        if (*readPtr != '\0') {
-            string schedRestOpt(readPtr);
-            int colonLoc = schedRestOpt.rfind(':');
-            QUANTUM_NUM = stoi(schedRestOpt.substr(0, colonLoc));
-            if (colonLoc != string::npos) {
-                PRIOS_NUM = stoi(schedRestOpt.substr(colonLoc+1, -1));
+        if (*read_ptr != '\0') {
+            string sched_rest_opt(read_ptr);
+            int colon_loc = sched_rest_opt.rfind(':');
+            QUANTUM = stoi(sched_rest_opt.substr(0, colon_loc));
+            if (colon_loc != string::npos) {
+                MAX_PRIORITY = stoi(sched_rest_opt.substr(colon_loc + 1, -1));
             }
         }
     }
@@ -110,39 +80,78 @@ int main(int argc, char **argv) {
         INPUT_FILE = string(argv[optind]);
         RAND_FILE = string(argv[optind+1]);
     }
+}
+
+void Simulation(queue<Event*>& event_queue, Scheduler& scheduler) {
+    Event* cur_event;
+
+    cur_event = event_queue.front();
+    event_queue.pop();
+
+    switch(cur_event->transition_to) {
+        case StateEnum::READY:
+            break;
+        case StateEnum::RUN:
+            break;
+        case StateEnum::BLOCK:
+            break;
+        case StateEnum::PREEMPT:
+            break;
+        default:
+            break;
+    }
+
+}
+
+int main(int argc, char **argv) {
+
+    ReadArgs(argc, argv);
+
+    vector<Process*> process_pool;
+    queue<Event*> event_queue;
 
     // read processes
-    ifstream ifsInputFile(INPUT_FILE);
-    Process* temp = nullptr;
+    ifstream ifs_input_file(INPUT_FILE);
+    Process* process_ptr = nullptr;
     int arriveT, totalT, cpuBurst, ioBurst;
-    while (ifsInputFile >> arriveT) {
-        ifsInputFile >> totalT >> cpuBurst >> ioBurst;
-        temp = new Process(arriveT, totalT, cpuBurst, ioBurst);
-        PROCESS_POOL.push_back(temp);
+    while (ifs_input_file >> arriveT) {
+        ifs_input_file >> totalT >> cpuBurst >> ioBurst;
+        process_ptr = new Process(arriveT, totalT, cpuBurst, ioBurst);
+        process_pool.push_back(process_ptr);
     }
-    ifsInputFile.close();
+    ifs_input_file.close();
 
     // read random file
-    ifstream ifsRandFile(RAND_FILE);
-    ifsRandFile >> RANDVALS_SIZE;
-    long nextInt;
+    ifstream ifs_rand_file(RAND_FILE);
+    ifs_rand_file >> RANDVALS_SIZE;
+    long next_int;
     int count = 0;
-    while (ifsRandFile >> nextInt && count < RANDVALS_SIZE) {
-        RANDVALS.push_back(nextInt);
+    while (ifs_rand_file >> next_int && count < RANDVALS_SIZE) {
+        RANDVALS.push_back(next_int);
         count++;
     }
-    ifsRandFile.close();
+    ifs_rand_file.close();
 
     // assign static priority and dynamic priority
-    for (auto p : PROCESS_POOL) {
-        p->static_priority = MyRandom(PRIOS_NUM);
+    for (auto p : process_pool) {
+        p->static_priority = MyRandom(MAX_PRIORITY);
         p->dynamic_priority = p->static_priority - 1;
     }
 
     // we cannot assure the process is listed in ascending order of arrival time
-    std::stable_sort(PROCESS_POOL.begin(), PROCESS_POOL.end(),
-            [](auto a, auto b) {return a->arrivalTime < b->arrivalTime; });
+    std::stable_sort(process_pool.begin(), process_pool.end(),
+                     [](Process* a, Process* b) {return a->arrival_time < b->arrival_time; });
 
-    Simulation();
+    Event* cur_event;
+    for (auto p : process_pool) {
+        cur_event = new Event(p, p->arrival_time, StateEnum::CREATE, StateEnum::READY);
+        event_queue.push(cur_event);
+    }
+
+    Scheduler* scheduler = SchedulerFactory::CreateScheduler(SCHED_SPEC);
+    scheduler->setQuantum(QUANTUM);
+    scheduler->setMaxPriority(MAX_PRIORITY);
+
+    Simulation(event_queue, *scheduler);
 
 }

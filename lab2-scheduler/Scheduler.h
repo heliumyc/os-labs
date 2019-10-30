@@ -11,12 +11,20 @@
 enum class SchedulerEnum {FCFS, LCFS, SRTF, RR, PRIO, PREPRIO};
 
 class Scheduler {
+public:
     virtual void AddProcess(Process* p) = 0;
     virtual Process* GetNext() = 0;
     virtual void TryPreempt(Process* p, int curtime) = 0;
 
 protected:
-    std::queue<Process*> runQueue;
+    std::queue<Process*> run_queue;
+    int quantum;
+    int max_priority;
+
+public:
+    void setQuantum(int quantum);
+    void setMaxPriority(int maxPriority);
+
 };
 
 class SchedulerFactory {
