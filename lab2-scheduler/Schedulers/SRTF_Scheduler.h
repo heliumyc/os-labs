@@ -1,0 +1,14 @@
+//
+// Created by CONG YU on 2019/10/28.
+//
+
+#ifndef LAB2_SCHEDULER_SRTF_SCHEDULER_H
+#define LAB2_SCHEDULER_SRTF_SCHEDULER_H
+
+
+class SRTF_Scheduler {
+
+};
+
+
+#endif //LAB2_SCHEDULER_SRTF_SCHEDULER_H

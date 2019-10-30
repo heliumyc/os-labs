@@ -1,0 +1,14 @@
+//
+// Created by CONG YU on 2019/10/28.
+//
+
+#ifndef LAB2_SCHEDULER_PRIORITY_SCHEDULER_H
+#define LAB2_SCHEDULER_PRIORITY_SCHEDULER_H
+
+
+class Priority_Scheduler {
+
+};
+
+
+#endif //LAB2_SCHEDULER_PRIORITY_SCHEDULER_H
