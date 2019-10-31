@@ -14,7 +14,11 @@ public:
     int cpu_burst;
     int io_burst;
 
-    int remain_cpu_time;
+    int remain_io_burst = 0;
+    int remain_cpu_burst = 0; // remember, if preempted or quantum time is up, cpu burst remains for next run!!! NOT RANDOM
+    int remain_cpu_time = 0;
+    int finish_time = 0;
+    int io_time_total = 0; // aka IT metric required in the answer
     int state_timestamp = 0;
 
     int static_priority;

@@ -8,7 +8,7 @@ void LCFS_Scheduler::TryPreempt(Process *p, int curtime) {
 
 }
 
-Process *LCFS_Scheduler::GetNext() {
+Process *LCFS_Scheduler::GetNextProcess() {
     return nullptr;
 }
 

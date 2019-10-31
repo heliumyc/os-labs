@@ -6,6 +6,7 @@
 #define LAB2_SCHEDULER_EVENT_H
 
 
+#include <string>
 #include "Process.h"
 
 enum class StateEnum {
@@ -13,8 +14,11 @@ enum class StateEnum {
     READY,
     RUN,
     BLOCK,
-    PREEMPT
+    PREEMPT,
+    DONE
 };
+
+std::string StateEnumToString(StateEnum s);
 
 class Event {
 public:
@@ -26,6 +30,7 @@ public:
 
     Event(Process *event_process, int event_timestamp, StateEnum transition_from, StateEnum transition_to);
 
+    int burst_log = 0;
 };
 
 

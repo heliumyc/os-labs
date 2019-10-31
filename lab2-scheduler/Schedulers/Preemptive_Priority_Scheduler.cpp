@@ -8,7 +8,7 @@ void Preemptive_Priority_Scheduler::AddProcess(Process *p) {
 
 }
 
-Process *Preemptive_Priority_Scheduler::GetNext() {
+Process *Preemptive_Priority_Scheduler::GetNextProcess() {
     return nullptr;
 }
 

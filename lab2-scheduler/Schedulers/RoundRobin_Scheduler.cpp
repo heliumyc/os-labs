@@ -8,7 +8,7 @@ void RounRobin_Scheduler::AddProcess(Process *p) {
 
 }
 
-Process *RounRobin_Scheduler::GetNext() {
+Process *RounRobin_Scheduler::GetNextProcess() {
     return nullptr;
 }
 

@@ -8,7 +8,7 @@ void Priority_Scheduler::AddProcess(Process *p) {
 
 }
 
-Process *Priority_Scheduler::GetNext() {
+Process *Priority_Scheduler::GetNextProcess() {
     return nullptr;
 }
 

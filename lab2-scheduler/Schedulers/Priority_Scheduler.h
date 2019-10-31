@@ -10,7 +10,7 @@
 
 class Priority_Scheduler: public Scheduler {
     void AddProcess(Process* p) override;
-    Process* GetNext() override;
+    Process* GetNextProcess() override;
     void TryPreempt(Process* p, int curtime) override;
 };
 

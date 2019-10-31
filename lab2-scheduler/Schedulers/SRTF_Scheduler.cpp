@@ -8,7 +8,7 @@ void SRTF_SCheduler::AddProcess(Process *p) {
 
 }
 
-Process *SRTF_SCheduler::GetNext() {
+Process *SRTF_SCheduler::GetNextProcess() {
     return nullptr;
 }
 

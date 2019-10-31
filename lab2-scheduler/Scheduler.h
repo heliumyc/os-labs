@@ -5,7 +5,7 @@
 #ifndef LAB2_SCHEDULER_SCHEDULER_H
 #define LAB2_SCHEDULER_SCHEDULER_H
 
-#include <queue>
+#include <list>
 #include "Process.h"
 
 enum class SchedulerEnum {FCFS, LCFS, SRTF, RR, PRIO, PREPRIO};
@@ -13,11 +13,11 @@ enum class SchedulerEnum {FCFS, LCFS, SRTF, RR, PRIO, PREPRIO};
 class Scheduler {
 public:
     virtual void AddProcess(Process* p) = 0;
-    virtual Process* GetNext() = 0;
+    virtual Process* GetNextProcess() = 0;
     virtual void TryPreempt(Process* p, int curtime) = 0;
 
 protected:
-    std::queue<Process*> run_queue;
+    std::list<Process*> run_queue;
     int quantum;
     int max_priority;
 
