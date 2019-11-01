@@ -29,5 +29,4 @@ Process *SRTF_SCheduler::GetNextProcess() {
 }
 
 void SRTF_SCheduler::TryPreempt(Process *p, int curtime) {
-
 }
