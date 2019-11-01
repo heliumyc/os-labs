@@ -19,6 +19,7 @@ public:
     int remain_cpu_time = 0;
     int finish_time = 0;
     int io_time_total = 0; // aka IT metric required in the answer
+    int cpu_waiting_time = 0;
     int state_timestamp = 0;
 
     int static_priority;

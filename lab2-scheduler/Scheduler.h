@@ -6,9 +6,11 @@
 #define LAB2_SCHEDULER_SCHEDULER_H
 
 #include <list>
+#include <string>
 #include "Process.h"
 
 enum class SchedulerEnum {FCFS, LCFS, SRTF, RR, PRIO, PREPRIO};
+std::string SchedulerEnumToString(SchedulerEnum s);
 
 class Scheduler {
 public:

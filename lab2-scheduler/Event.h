@@ -31,6 +31,9 @@ public:
     Event(Process *event_process, int event_timestamp, StateEnum transition_from, StateEnum transition_to);
 
     int burst_log = 0;
+    int rem_log = 0;
+    int priority_log = 0;
+    int previous_time_log = 0;
 };
 
 

@@ -84,50 +84,56 @@ void ReadArgs(int argc, char **argv) {
 }
 
 void AddEvent(list<Event*>& event_list, Event* event) {
-    for (auto it = event_list.begin(); it != event_list.end(); ++it) {
+    if (event_list.empty()) {
+        event_list.push_back(event);
+        return;
+    }
+    auto it = event_list.begin();
+    while (it != event_list.end()) {
         if ((*it)->event_timestamp > event->event_timestamp) {
-            event_list.insert(it, event);
             break;
         }
-        else if ((*it)->event_timestamp == event->event_timestamp) {
-            if ((*it)->event_process->dynamic_priority < event->event_process->dynamic_priority) {
-                event_list.insert(it, event);
-                break;
-            }
-            else if ((*it)->event_process->dynamic_priority == event->event_process->dynamic_priority
-                     && (*it)->event_process->pid > event->event_process->pid) {
-                event_list.insert(it, event);
-                break;
-            }
-        }
+//        else if ((*it)->event_timestamp == event->event_timestamp) {
+//            if ((*it)->event_process->dynamic_priority < event->event_process->dynamic_priority) {
+//                break;
+//            }
+//            else if ((*it)->event_process->dynamic_priority == event->event_process->dynamic_priority
+//                     && (*it)->event_process->pid > event->event_process->pid) {
+//                break;
+//            }
+//        }
+        it++;
     }
+    event_list.insert(it, event);
 }
 
 void PrintEvent(Event* event) {
     cout << event->event_timestamp << " ";
     cout << event->event_process->pid << " ";
-    cout << event->event_timestamp-event->event_process->state_timestamp << ": ";
+    cout << event->previous_time_log << ": ";
     if (event->transition_to == StateEnum::DONE) {
         cout << "DONE";
     } else {
         cout << StateEnumToString(event->transition_from) << " -> " << StateEnumToString(event->transition_to) << " ";
         if (event->transition_to == StateEnum::BLOCK) {
-            cout << "ib=" << event->event_process->remain_io_burst << " rem=" << event->event_process->remain_cpu_time;
-            cout << " prio=" << event->event_process->dynamic_priority;
+            cout << "ib=" << event->burst_log << " rem=" << event->rem_log;
+//            cout << " prio=" << event->priority_log;
         } else if (event->transition_to == StateEnum::RUN) {
-            cout << "cb=" << event->burst_log << " rem=" << event->event_process->remain_cpu_time;
-            cout << " prio=" << event->event_process->dynamic_priority;
+            cout << "cb=" << event->burst_log << " rem=" << event->rem_log;
+            cout << " prio=" << event->priority_log;
         }
     }
     cout << endl;
 }
 
-void Simulation(list<Event*>& event_list, Scheduler& scheduler) {
+void Simulation(list<Event*>& event_list, Scheduler& scheduler, int* total_io_time) {
     Event* cur_event;
     int cur_time;
     int time_in_previous_state;
     bool call_scheduler = false;
     Process* cur_running_process = nullptr;
+    Process* cur_blocked_process = nullptr;
+    int last_io_timestamp = 0;
 
     while (!event_list.empty()) {
         cur_event = event_list.front();
@@ -135,13 +141,23 @@ void Simulation(list<Event*>& event_list, Scheduler& scheduler) {
         Process* process = cur_event->event_process;
         cur_time = cur_event->event_timestamp;
         time_in_previous_state = cur_time - process->state_timestamp;
+        cur_event->previous_time_log = time_in_previous_state;
 
         switch(cur_event->transition_to) {
-            case StateEnum::READY:
+            case StateEnum::READY: {
+                if (cur_blocked_process == process) {
+                    // current lasted blocked process is unblock
+                    cur_blocked_process = nullptr;
+                }
+                process->state_timestamp = cur_time;
                 scheduler.AddProcess(process);
                 call_scheduler = true;
                 break;
+            }
             case StateEnum::RUN: {
+                process->cpu_waiting_time += cur_time - process->state_timestamp;
+                process->state_timestamp = cur_time;
+                cur_running_process = process;
                 int burst = 0;
 
                 if (process->remain_cpu_burst > 0) {
@@ -151,6 +167,9 @@ void Simulation(list<Event*>& event_list, Scheduler& scheduler) {
                     // roll the dice and choose a new burst
                     burst = MyRandom(process->cpu_burst);
                 }
+
+                cur_event->rem_log = process->remain_cpu_time;
+                cur_event->priority_log = process->dynamic_priority;
 
                 if (burst > QUANTUM) {
                     // take the preempt
@@ -163,37 +182,64 @@ void Simulation(list<Event*>& event_list, Scheduler& scheduler) {
                     AddEvent(event_list, new_event);
                 } else if (process->remain_cpu_time-burst <= 0) {
                     // exceed the total time, so DONE!
-                    process->remain_cpu_time -= burst;
+                    burst = process->remain_cpu_time;
+                    process->remain_cpu_time = 0;
                     process->remain_cpu_burst = 0;
                     auto* new_event = new Event(process, cur_time+burst, StateEnum::RUN, StateEnum::DONE);
                     AddEvent(event_list, new_event);
                 }
+
+                // log
+                cur_event->burst_log = burst;
                 break;
             }
             case StateEnum::BLOCK: {
+                process->state_timestamp = cur_time;
                 cur_running_process = nullptr;
-                int io_time = MyRandom(process->io_burst);
-                auto* new_event = new Event(process, cur_time+io_time, StateEnum::BLOCK, StateEnum::READY);
-                process->io_time_total += io_time;
+                int burst = MyRandom(process->io_burst);
+
+                // log
+                cur_event->burst_log = burst;
+                cur_event->rem_log = process->remain_cpu_time;
+                cur_event->priority_log = process->dynamic_priority;
+
+                auto* new_event = new Event(process, cur_time + burst, StateEnum::BLOCK, StateEnum::READY);
+                process->io_time_total += burst;
                 AddEvent(event_list, new_event);
+                call_scheduler = true;
+
+                // update total_io_time
+                if (cur_blocked_process == nullptr) {
+                    *total_io_time += burst;
+                    last_io_timestamp = cur_time + burst;
+                    cur_blocked_process = process;
+                } else if (cur_time + burst > last_io_timestamp) {
+                        *total_io_time += cur_time + burst - last_io_timestamp;
+                        last_io_timestamp = cur_time + burst;
+                        cur_blocked_process = process;
+                }
+                break;
+            }
+            case StateEnum::PREEMPT: {
+                process->state_timestamp = cur_time;
                 call_scheduler = true;
                 break;
             }
-            case StateEnum::PREEMPT:
-                call_scheduler = true;
-                break;
             case StateEnum::DONE:
+                process->state_timestamp = cur_time;
                 process->finish_time = cur_time;
+                cur_running_process = nullptr;
+                call_scheduler = true;
                 break;
             default:
                 break;
         }
 
-//        PrintEvent(cur_event);
+        if (IS_VERBOSE) PrintEvent(cur_event);
         delete cur_event;
 
         if (call_scheduler) {
-            if (event_list.front()->event_timestamp == cur_time) {
+            if (!event_list.empty() && event_list.front()->event_timestamp == cur_time) {
                 continue;
             }
             call_scheduler = false;
@@ -204,6 +250,7 @@ void Simulation(list<Event*>& event_list, Scheduler& scheduler) {
                     continue;
                 }
                 // create event
+//                cur_running_process->state_timestamp = cur_time;
                 auto* new_event = new Event(cur_running_process, cur_time, StateEnum::READY, StateEnum::RUN);
                 AddEvent(event_list, new_event);
             }
@@ -264,5 +311,38 @@ int main(int argc, char **argv) {
     scheduler->setQuantum(QUANTUM);
     scheduler->setMaxPriority(MAX_PRIORITY);
 
-    Simulation(event_list, *scheduler);
+    int total_io_time = 0;
+    Simulation(event_list, *scheduler, &total_io_time);
+
+    // print out summary
+    cout << SchedulerEnumToString(SCHED_SPEC);
+    if (SCHED_SPEC == SchedulerEnum::RR || SCHED_SPEC == SchedulerEnum::PRIO || SCHED_SPEC == SchedulerEnum::PREPRIO) {
+        cout << " " << QUANTUM;
+    }
+    cout << endl;
+    cout << flush;
+
+    // not using cout because format constrain, in case some annoying bugs
+    int total_cpu_time = 0;
+    int total_process_turnaround_time = 0;
+    int total_cpu_waiting_time = 0;
+    int last_finish_time = 0;
+    for (auto p : process_pool) {
+        printf("%04d: %4d %4d %4d %4d %1d | %5d %5d %5d %5d\n",
+                p->pid, p->arrival_time, p->total_cpu_time, p->cpu_burst, p->io_burst, p->static_priority,
+                p->finish_time, (p->finish_time-p->arrival_time), p->io_time_total, p->cpu_waiting_time);
+        total_cpu_time += p->total_cpu_time;
+        total_process_turnaround_time += p->finish_time - p->arrival_time;
+        total_cpu_waiting_time += p->cpu_waiting_time;
+        last_finish_time = max(last_finish_time, p->finish_time);
+    }
+
+    double cpu_util = total_cpu_time/(double)last_finish_time;
+    double io_util = total_io_time/(double)last_finish_time;
+    double time_units = (double) last_finish_time / 100;
+
+    printf("SUM: %d %.2lf %.2lf %.2lf %.2lf %.3lf\n", last_finish_time, 100*cpu_util, 100*io_util,
+            total_process_turnaround_time/(double)process_pool.size(),
+            total_cpu_waiting_time/(double)process_pool.size(),
+           process_pool.size() / time_units);
 }

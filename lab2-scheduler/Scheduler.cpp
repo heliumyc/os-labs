@@ -30,3 +30,14 @@ void Scheduler::setQuantum(int quantum) {
 void Scheduler::setMaxPriority(int maxPriority) {
     max_priority = maxPriority;
 }
+
+std::string SchedulerEnumToString(SchedulerEnum s) {
+    switch (s) {
+        case SchedulerEnum::FCFS: return "FCFS";
+        case SchedulerEnum::LCFS: return "LCFS";
+        case SchedulerEnum::SRTF: return "SRTF";
+        case SchedulerEnum::RR: return "RR";
+        case SchedulerEnum::PRIO: return "PRIO";
+        case SchedulerEnum ::PREPRIO: return "PREPRIO";
+    }
+}
