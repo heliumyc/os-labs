@@ -108,11 +108,13 @@ void PrintEvent(Event* event) {
         cout << StateEnumToString(event->transition_from) << " -> " << StateEnumToString(event->transition_to) << " ";
         if (event->transition_to == StateEnum::BLOCK) {
             cout << "ib=" << event->burst_log << " rem=" << event->rem_log;
-//            cout << " prio=" << event->priority_log;
-        } else if (event->transition_to == StateEnum::RUN) {
-            cout << "cb=" << event->burst_log << " rem=" << event->rem_log;
-            cout << " prio=" << event->priority_log;
+        } else if (event->transition_to == StateEnum::RUN || event->transition_to == StateEnum::PREEMPT) {
+            cout << "cb=" << event->burst_log << " rem=" << event->rem_log << " prio=" << event->priority_log;
         }
+//        else if (event->transition_to == StateEnum::READY && event->transition_from == StateEnum::RUN) {
+//            cout << "cb=" << event->event_process->remain_cpu_burst << " rem=" << event->event_process->remain_cpu_time;
+//            cout << " prio=" << event->event_process->dynamic_priority;
+//        }
     }
     cout << endl;
 }
@@ -159,12 +161,19 @@ void Simulation(list<Event*>& event_list, Scheduler& scheduler, int* total_io_ti
                     burst = MyRandom(process->cpu_burst);
                 }
 
+                // to avoid an extreme corner case, try remove it with input 0 and RoundRobin
+                burst = min(burst, process->remain_cpu_time);
+
                 cur_event->rem_log = process->remain_cpu_time;
                 cur_event->priority_log = process->dynamic_priority;
 
                 if (burst > QUANTUM) {
                     // take the preempt
-                    // TODO
+                    process->remain_cpu_time -= QUANTUM;
+                    process->remain_cpu_burst = burst - QUANTUM;
+                    auto* new_event = new Event(process, cur_time+QUANTUM, StateEnum::RUN, StateEnum::PREEMPT);
+                    AddEvent(event_list, new_event);
+//                    cur_running_process = nullptr;
                 } else if (process->remain_cpu_time-burst > 0) {
                     // just normal run, need to new a block event
                     process->remain_cpu_time -= burst;
@@ -213,7 +222,14 @@ void Simulation(list<Event*>& event_list, Scheduler& scheduler, int* total_io_ti
             }
             case StateEnum::PREEMPT: {
                 process->state_timestamp = cur_time;
+                scheduler.AddProcess(process);
+                cur_running_process = nullptr;
                 call_scheduler = true;
+
+                // log
+                cur_event->burst_log = process->remain_cpu_burst;
+                cur_event->rem_log = process->remain_cpu_time;
+                cur_event->priority_log = process->dynamic_priority;
                 break;
             }
             case StateEnum::DONE:

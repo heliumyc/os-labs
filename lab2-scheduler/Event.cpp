@@ -13,7 +13,7 @@ std::string StateEnumToString(StateEnum s) {
         case StateEnum::CREATE: return "CREATE";
         case StateEnum::BLOCK: return "BLOCK";
         case StateEnum::RUN: return "RUNNG";
-        case StateEnum::PREEMPT: return "PREEMPT";
+        case StateEnum::PREEMPT: return "READY";
         case StateEnum::READY: return "READY";
         case StateEnum ::DONE: return "DONE";
     }
