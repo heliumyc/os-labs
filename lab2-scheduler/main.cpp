@@ -93,15 +93,6 @@ void AddEvent(list<Event*>& event_list, Event* event) {
         if ((*it)->event_timestamp > event->event_timestamp) {
             break;
         }
-//        else if ((*it)->event_timestamp == event->event_timestamp) {
-//            if ((*it)->event_process->dynamic_priority < event->event_process->dynamic_priority) {
-//                break;
-//            }
-//            else if ((*it)->event_process->dynamic_priority == event->event_process->dynamic_priority
-//                     && (*it)->event_process->pid > event->event_process->pid) {
-//                break;
-//            }
-//        }
         it++;
     }
     event_list.insert(it, event);
