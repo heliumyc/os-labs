@@ -111,10 +111,6 @@ void PrintEvent(Event* event) {
         } else if (event->transition_to == StateEnum::RUN || event->transition_to == StateEnum::PREEMPT) {
             cout << "cb=" << event->burst_log << " rem=" << event->rem_log << " prio=" << event->priority_log;
         }
-//        else if (event->transition_to == StateEnum::READY && event->transition_from == StateEnum::RUN) {
-//            cout << "cb=" << event->event_process->remain_cpu_burst << " rem=" << event->event_process->remain_cpu_time;
-//            cout << " prio=" << event->event_process->dynamic_priority;
-//        }
     }
     cout << endl;
 }
