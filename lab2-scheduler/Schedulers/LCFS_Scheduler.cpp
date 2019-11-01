@@ -4,10 +4,6 @@
 
 #include "LCFS_Scheduler.h"
 
-void LCFS_Scheduler::TryPreempt(Process *p, int curtime) {
-
-}
-
 Process *LCFS_Scheduler::GetNextProcess() {
     Process* process = nullptr;
     if (!this->run_queue.empty()) {
@@ -19,4 +15,7 @@ Process *LCFS_Scheduler::GetNextProcess() {
 
 void LCFS_Scheduler::AddProcess(Process *p) {
     this->run_queue.push_front(p);
+}
+
+void LCFS_Scheduler::TryPreempt(Process *p, int curtime) {
 }
