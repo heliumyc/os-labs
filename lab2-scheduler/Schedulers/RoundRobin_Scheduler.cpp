@@ -18,5 +18,5 @@ Process *RounRobin_Scheduler::GetNextProcess() {
 }
 
 void RounRobin_Scheduler::TryPreempt(Process *p, int curtime) {
-
+    AddProcess(p);
 }

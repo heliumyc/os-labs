@@ -15,3 +15,7 @@ Process *Preemptive_Priority_Scheduler::GetNextProcess() {
 void Preemptive_Priority_Scheduler::TryPreempt(Process *p, int curtime) {
 
 }
+
+Preemptive_Priority_Scheduler::Preemptive_Priority_Scheduler(int max_priority) {
+    this->max_priority = max_priority;
+}

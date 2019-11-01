@@ -12,6 +12,9 @@ class Preemptive_Priority_Scheduler: public Scheduler {
     void AddProcess(Process* p) override;
     Process* GetNextProcess() override;
     void TryPreempt(Process* p, int curtime) override;
+
+public:
+    explicit Preemptive_Priority_Scheduler(int max_priority);
 };
 
 

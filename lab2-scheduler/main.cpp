@@ -204,6 +204,9 @@ void Simulation(list<Event*>& event_list, Scheduler& scheduler, int* total_io_ti
                 AddEvent(event_list, new_event);
                 call_scheduler = true;
 
+                // when it come back from block, recover the priority, see input0 for P2
+                process->dynamic_priority = process->static_priority-1;
+
                 // update total_io_time
                 if (cur_blocked_process == nullptr) {
                     *total_io_time += burst;
@@ -217,15 +220,16 @@ void Simulation(list<Event*>& event_list, Scheduler& scheduler, int* total_io_ti
                 break;
             }
             case StateEnum::PREEMPT: {
-                process->state_timestamp = cur_time;
-                scheduler.AddProcess(process);
-                cur_running_process = nullptr;
-                call_scheduler = true;
-
-                // log
+                // log, put it at top because to make verbose prio shows as same as the reference log does
                 cur_event->burst_log = process->remain_cpu_burst;
                 cur_event->rem_log = process->remain_cpu_time;
                 cur_event->priority_log = process->dynamic_priority;
+
+                process->state_timestamp = cur_time;
+                scheduler.TryPreempt(process, cur_time);
+                cur_running_process = nullptr;
+                call_scheduler = true;
+
                 break;
             }
             case StateEnum::DONE:
@@ -310,9 +314,7 @@ int main(int argc, char **argv) {
         p->state_timestamp = p->arrival_time;
     }
 
-    Scheduler* scheduler = SchedulerFactory::CreateScheduler(SCHED_SPEC);
-    scheduler->setQuantum(QUANTUM);
-    scheduler->setMaxPriority(MAX_PRIORITY);
+    Scheduler* scheduler = SchedulerFactory::CreateScheduler(SCHED_SPEC, QUANTUM, MAX_PRIORITY);
 
     int total_io_time = 0;
     Simulation(event_list, *scheduler, &total_io_time);
