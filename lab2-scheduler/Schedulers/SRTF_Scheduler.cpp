@@ -8,12 +8,14 @@ void SRTF_SCheduler::AddProcess(Process *p) {
     if (this->run_queue.empty()) {
         this->run_queue.push_back(p);
     } else {
-        for (auto it = this->run_queue.begin(); it != this->run_queue.end(); ++it) {
+        auto it = this->run_queue.begin();
+        while (it != this->run_queue.end()) {
             if ((*it)->remain_cpu_time > p->remain_cpu_time) {
-                this->run_queue.insert(it, p);
                 break;
             }
+            it++;
         }
+        this->run_queue.insert(it, p);
     }
 }
 
