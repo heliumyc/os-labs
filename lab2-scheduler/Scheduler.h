@@ -24,7 +24,7 @@ protected:
     int max_priority;
 
 public:
-    void setQuantum(int _quantum);
+    void setQuantum(int quantum);
     void setMaxPriority(int max_priority);
 };
 

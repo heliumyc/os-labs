@@ -23,12 +23,12 @@ Scheduler *SchedulerFactory::CreateScheduler(SchedulerEnum type, int quantum, in
     }
 }
 
-void Scheduler::setQuantum(int _quantum) {
-    this->quantum = _quantum;
+void Scheduler::setQuantum(int quantum) {
+    this->quantum = quantum;
 }
 
-void Scheduler::setMaxPriority(int _max_priority) {
-    this->max_priority = _max_priority;
+void Scheduler::setMaxPriority(int max_priority) {
+    this->max_priority = max_priority;
 }
 
 std::string SchedulerEnumToString(SchedulerEnum s) {

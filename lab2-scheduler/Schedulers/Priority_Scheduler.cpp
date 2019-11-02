@@ -5,8 +5,8 @@
 #include <numeric>
 #include "Priority_Scheduler.h"
 
-Priority_Scheduler::Priority_Scheduler(int _max_priority) {
-    max_priority = _max_priority;
+Priority_Scheduler::Priority_Scheduler(int max_priority) {
+    this->max_priority = max_priority;
     assert(max_priority > 0);
     // you can do this, pointer to the array of pointers, wow!
 //    active_queue = new std::queue<Process*>*[max_priority];

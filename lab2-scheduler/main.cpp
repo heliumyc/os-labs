@@ -7,12 +7,14 @@
 #include <vector>
 #include <list>
 #include <fstream>
+#include <sstream>
 #include "Scheduler.h"
 #include "Event.h"
 
 using namespace std;
 
 bool IS_VERBOSE = false;
+bool IS_HARD_PREEMPT = false; // hard preempt means some process to stop another
 SchedulerEnum SCHED_SPEC;
 int QUANTUM = 10000;
 int MAX_PRIORITY = 4;
@@ -115,6 +117,28 @@ void PrintEvent(Event* event) {
     cout << endl;
 }
 
+bool CheckPendingTimestamp(list<Event*>& event_list, int pid, int timestamp) {
+    for (auto event: event_list) {
+        if (event->event_timestamp == timestamp && pid == event->event_process->pid) {
+            return true;
+        }
+    }
+    return false;
+}
+
+int RemoveEvent(list<Event*>& event_list, int pid) {
+    auto it = event_list.begin();
+    while (it != event_list.end()) {
+        if ((*it)->event_process->pid == pid) {
+            int expected_timestamp = (*it)->event_timestamp;
+            it = event_list.erase(it);
+            return expected_timestamp; // there is only one event possible in event list!!!! think about it
+        } else {
+            it++;
+        }
+    }
+}
+
 void Simulation(list<Event*>& event_list, Scheduler& scheduler, int* total_io_time) {
     Event* cur_event;
     int cur_time;
@@ -132,15 +156,75 @@ void Simulation(list<Event*>& event_list, Scheduler& scheduler, int* total_io_ti
         time_in_previous_state = cur_time - process->state_timestamp;
         cur_event->previous_time_log = time_in_previous_state;
 
+        // for preempt-prio event log
+        stringstream preempt_check_log;
+
         switch(cur_event->transition_to) {
             case StateEnum::READY: {
                 if (cur_blocked_process == process) {
-                    // current lasted blocked process is unblock
+                    // current last blocked process is unblocked
                     cur_blocked_process = nullptr;
                 }
+
                 process->state_timestamp = cur_time;
-                scheduler.AddProcess(process);
-                call_scheduler = true;
+
+                /// below is really ugly solution for the evil E scheduler
+                /// it requires to hard stop a process
+                /// because it must check following events, so the procedure must be placed in des layer
+                /// therefore, such ugly and inelegant
+
+                if (IS_HARD_PREEMPT && cur_running_process != nullptr) {
+                    bool has_pending_event = false;
+                    int temp = cur_running_process->pid;
+                    has_pending_event = CheckPendingTimestamp(event_list, temp, cur_time);
+                    bool potential_preempt = process->dynamic_priority > cur_running_process->dynamic_priority;
+                    if (potential_preempt) {
+                        // hard preempt!
+                        // the step is first down the current run, and next start new, see INPUT3
+
+                        // check whether there is event pending for current time stamp
+                        // if so, just add current process and leave it, no need to preempt,
+                        // cuz the pending event will cover it
+                        if (has_pending_event) {
+                            scheduler.AddProcess(process);
+                            // running only has two direction, either ready or block will invoke call scheduler later
+                            call_scheduler = false;
+                        } else {
+                            // no pending, clean up the following event
+                            int removed_timestamp = RemoveEvent(event_list, cur_running_process->pid);
+                            // make current running process to preempt
+
+                            int expected_run_time = removed_timestamp - cur_running_process->state_timestamp;
+                            cur_running_process->remain_cpu_time += expected_run_time;
+                            cur_running_process->remain_cpu_burst += expected_run_time;
+
+                            int has_run_time = cur_time - cur_running_process->state_timestamp;
+                            cur_running_process->remain_cpu_time -= has_run_time;
+                            cur_running_process->remain_cpu_burst -= has_run_time;
+
+                            auto* new_event = new Event(cur_running_process, cur_time, StateEnum::RUN, StateEnum::PREEMPT);
+                            AddEvent(event_list, new_event);
+
+                            scheduler.AddProcess(process);
+                            call_scheduler = false;
+                        }
+                    } else {
+                        scheduler.AddProcess(process);
+                        call_scheduler = true;
+                    }
+
+                    if (IS_VERBOSE) {
+                        preempt_check_log << "---> PRIO preemption " <<  cur_running_process->pid << " by " << process->pid;
+                        // I dont want to log some confusing params of cur running process despite its easiness
+                        preempt_check_log << " ? " << "x" << " " << "TS=xx now=" << cur_time << ") --> ";
+                        preempt_check_log << ((potential_preempt && !has_pending_event)? "YES": "NO") << endl;
+                    }
+
+                } else {
+                    scheduler.AddProcess(process);
+                    call_scheduler = true;
+                }
+
                 break;
             }
             case StateEnum::RUN: {
@@ -242,7 +326,11 @@ void Simulation(list<Event*>& event_list, Scheduler& scheduler, int* total_io_ti
                 break;
         }
 
-        if (IS_VERBOSE) PrintEvent(cur_event);
+        if (IS_VERBOSE) {
+            PrintEvent(cur_event);
+            cout << preempt_check_log.str(); // if its not preem-prio, then its empty string, no harm
+            preempt_check_log.clear();
+        }
         delete cur_event;
 
         if (call_scheduler) {
@@ -317,6 +405,7 @@ int main(int argc, char **argv) {
     Scheduler* scheduler = SchedulerFactory::CreateScheduler(SCHED_SPEC, QUANTUM, MAX_PRIORITY);
 
     int total_io_time = 0;
+    IS_HARD_PREEMPT = SCHED_SPEC == SchedulerEnum::PREPRIO;
     Simulation(event_list, *scheduler, &total_io_time);
 
     // print out summary

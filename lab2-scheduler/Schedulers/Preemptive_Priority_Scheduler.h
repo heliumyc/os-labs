@@ -6,14 +6,17 @@
 #define LAB2_SCHEDULER_PREEMPTIVE_PRIORITY_SCHEDULER_H
 
 
+#include <queue>
 #include "../Scheduler.h"
 
 class Preemptive_Priority_Scheduler: public Scheduler {
     void AddProcess(Process* p) override;
     Process* GetNextProcess() override;
-    void TryPreempt(Process* p, int curtime) override;
+    void TryPreempt(Process* p, int cur_time) override;
 
 public:
+    std::vector<std::queue<Process*>*> active_queue;
+    std::vector<std::queue<Process*>*> expired_queue;
     explicit Preemptive_Priority_Scheduler(int max_priority);
 };
 
