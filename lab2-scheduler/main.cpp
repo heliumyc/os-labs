@@ -117,7 +117,7 @@ void PrintEvent(Event* event) {
     cout << endl;
 }
 
-bool CheckPendingTimestamp(list<Event*>& event_list, int pid, int timestamp) {
+bool CheckPendingEvent(list<Event*>& event_list, int pid, int timestamp) {
     for (auto event: event_list) {
         if (event->event_timestamp == timestamp && pid == event->event_process->pid) {
             return true;
@@ -177,7 +177,7 @@ void Simulation(list<Event*>& event_list, Scheduler& scheduler, int* total_io_ti
                 if (IS_HARD_PREEMPT && cur_running_process != nullptr) {
                     bool has_pending_event = false;
                     int temp = cur_running_process->pid;
-                    has_pending_event = CheckPendingTimestamp(event_list, temp, cur_time);
+                    has_pending_event = CheckPendingEvent(event_list, temp, cur_time);
                     bool potential_preempt = process->dynamic_priority > cur_running_process->dynamic_priority;
                     if (potential_preempt) {
                         // hard preempt!
