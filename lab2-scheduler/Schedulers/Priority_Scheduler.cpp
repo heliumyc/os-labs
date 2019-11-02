@@ -7,7 +7,6 @@
 
 Priority_Scheduler::Priority_Scheduler(int max_priority) {
     this->max_priority = max_priority;
-    assert(max_priority > 0);
     // you can do this, pointer to the array of pointers, wow!
 //    active_queue = new std::queue<Process*>*[max_priority];
 //    expired_queue = new std::queue<Process*>*[max_priority];
@@ -30,11 +29,14 @@ void Priority_Scheduler::AddProcess(Process *p) {
 }
 
 Process *Priority_Scheduler::GetNextProcess() {
-
     // functional is awesome!
     bool nonactive = std::accumulate(active_queue.rbegin(), active_queue.rend(), true, [](bool acc, std::queue<Process*>* q){
         return acc && q->empty(); // move makes no difference here for primitive type like bool and int
     });
+//    bool nonactive = false;
+//    for (auto it: active_queue) {
+//        nonactive = nonactive && it->empty();
+//    }
 
     if (nonactive) {
         active_queue.swap(expired_queue); // this swap is constant time

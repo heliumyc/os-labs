@@ -7,7 +7,6 @@
 
 Preemptive_Priority_Scheduler::Preemptive_Priority_Scheduler(int max_priority) {
     this->max_priority = max_priority;
-    assert(max_priority > 0);
     active_queue.resize(max_priority);
     expired_queue.resize(max_priority);
 
@@ -31,6 +30,10 @@ Process *Preemptive_Priority_Scheduler::GetNextProcess() {
     bool nonactive = std::accumulate(active_queue.rbegin(), active_queue.rend(), true, [](bool acc, std::queue<Process*>* q){
         return acc && q->empty(); // move makes no difference here for primitive type like bool and int
     });
+//    bool nonactive = false;
+//    for (auto it: active_queue) {
+//        nonactive = nonactive && it->empty();
+//    }
 
     if (nonactive) {
         active_queue.swap(expired_queue); // this swap is constant time

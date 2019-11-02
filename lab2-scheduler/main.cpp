@@ -137,6 +137,7 @@ int RemoveEvent(list<Event*>& event_list, int pid) {
             it++;
         }
     }
+    return -1;
 }
 
 void Simulation(list<Event*>& event_list, Scheduler& scheduler, int* total_io_time) {
@@ -192,6 +193,7 @@ void Simulation(list<Event*>& event_list, Scheduler& scheduler, int* total_io_ti
                         } else {
                             // no pending, clean up the following event
                             int removed_timestamp = RemoveEvent(event_list, cur_running_process->pid);
+                            // assert removed_timestamp != -1
                             // make current running process to preempt
 
                             int expected_run_time = removed_timestamp - cur_running_process->state_timestamp;
@@ -384,6 +386,9 @@ int main(int argc, char **argv) {
     }
     ifs_rand_file.close();
 
+    if (!(SCHED_SPEC == SchedulerEnum::PRIO || SCHED_SPEC == SchedulerEnum::PREPRIO)) {
+        MAX_PRIORITY = 4;
+    }
     // assign static priority and dynamic priority
     for (auto p : process_pool) {
         p->static_priority = MyRandom(MAX_PRIORITY);
@@ -439,4 +444,5 @@ int main(int argc, char **argv) {
             total_process_turnaround_time/(double)process_pool.size(),
             total_cpu_waiting_time/(double)process_pool.size(),
            process_pool.size() / time_units);
+    return 0;
 }

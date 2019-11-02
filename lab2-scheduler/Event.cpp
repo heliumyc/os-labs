@@ -9,12 +9,14 @@ Event::Event(Process *event_process, int event_timestamp, StateEnum transition_f
           transition_to(transition_to) {}
 
 std::string StateEnumToString(StateEnum s) {
+    std::string str;
     switch (s) {
-        case StateEnum::CREATE: return "CREATE";
-        case StateEnum::BLOCK: return "BLOCK";
-        case StateEnum::RUN: return "RUNNG";
-        case StateEnum::PREEMPT: return "READY";
-        case StateEnum::READY: return "READY";
-        case StateEnum ::DONE: return "DONE";
+        case StateEnum::CREATE: str = "CREATE"; break;
+        case StateEnum::BLOCK: str = "BLOCK"; break;
+        case StateEnum::RUN: str = "RUNNG"; break;
+        case StateEnum::PREEMPT: str = "READY"; break;
+        case StateEnum::READY: str = "READY"; break;
+        case StateEnum ::DONE: str = "DONE"; break;
     }
+    return str;
 }

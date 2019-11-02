@@ -13,14 +13,14 @@
 Scheduler *SchedulerFactory::CreateScheduler(SchedulerEnum type, int quantum, int max_priority) {
     Scheduler* createdScheduler = nullptr;
     switch (type) {
-        case SchedulerEnum::FCFS: return new FCFS_Scheduler();
-        case SchedulerEnum::LCFS: return new LCFS_Scheduler();
-        case SchedulerEnum::SRTF: return new SRTF_SCheduler();
-        case SchedulerEnum::RR:   return new RounRobin_Scheduler();
-        case SchedulerEnum::PRIO: return new Priority_Scheduler(max_priority);
-        case SchedulerEnum::PREPRIO: return new Preemptive_Priority_Scheduler(max_priority);
-        default: return nullptr;
+        case SchedulerEnum::FCFS: createdScheduler = new FCFS_Scheduler(); break;
+        case SchedulerEnum::LCFS: createdScheduler = new LCFS_Scheduler(); break;
+        case SchedulerEnum::SRTF: createdScheduler = new SRTF_SCheduler(); break;
+        case SchedulerEnum::RR:   createdScheduler = new RounRobin_Scheduler(); break;
+        case SchedulerEnum::PRIO: createdScheduler = new Priority_Scheduler(max_priority); break;
+        case SchedulerEnum::PREPRIO: createdScheduler = new Preemptive_Priority_Scheduler(max_priority); break;
     }
+    return createdScheduler;
 }
 
 void Scheduler::setQuantum(int quantum) {
@@ -32,12 +32,14 @@ void Scheduler::setMaxPriority(int max_priority) {
 }
 
 std::string SchedulerEnumToString(SchedulerEnum s) {
+    std::string str;
     switch (s) {
-        case SchedulerEnum::FCFS: return "FCFS";
-        case SchedulerEnum::LCFS: return "LCFS";
-        case SchedulerEnum::SRTF: return "SRTF";
-        case SchedulerEnum::RR: return "RR";
-        case SchedulerEnum::PRIO: return "PRIO";
-        case SchedulerEnum ::PREPRIO: return "PREPRIO";
+        case SchedulerEnum::FCFS: str = "FCFS"; break;
+        case SchedulerEnum::LCFS: str = "LCFS"; break;
+        case SchedulerEnum::SRTF: str = "SRTF"; break;
+        case SchedulerEnum::RR: str = "RR"; break;
+        case SchedulerEnum::PRIO: str = "PRIO"; break;
+        case SchedulerEnum ::PREPRIO: str = "PREPRIO"; break;
     }
+    return str;
 }
