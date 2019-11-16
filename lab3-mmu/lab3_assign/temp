@@ -1,0 +1,16 @@
+case 'O':
+PRINT_OUTPUT = true; break;
+case 'P':
+PRINT_FINAL_PAGE_TABLE = true; break;
+case 'F':
+PRINT_FINAL_FRAME_TABLE = true; break;
+case 'S':
+PRINT_SUMMARY = true; break;
+case 'x':
+PRINT_CURRENT_PAGE_TABLE_PER_INSTRUCTION = true; break;
+case 'y':
+PRINT_CURRENT_ALL_PAGE_TABLE_PER_INSTRUCTION = true; break;
+case 'f':
+PRINT_FRAME_TABLE_PER_INSTRUCTION = true; break;
+case 'a':
+PRINT_AGING = true; break;
