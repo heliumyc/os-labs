@@ -6,8 +6,22 @@
 #define LAB3_MMU_PROCESS_H
 
 #include <vector>
+#include "DataTypes.h"
 
 using namespace std;
+
+const unsigned int PTE_SIZE = 64;
+
+typedef struct {
+    unsigned int PRESENT : 1;
+    unsigned int WRITE_PROTECT : 1;
+    unsigned int MODIFIED : 1;
+    unsigned int REFERENCED : 1;
+    unsigned int PAGEDOUT : 1;
+    unsigned int FRAME_NUM: 7;
+    // following is 20 bits of free allocation
+    unsigned int UNK: 20;
+} PageTableEntry;
 
 typedef struct {
     int start_vpage;
@@ -18,11 +32,11 @@ typedef struct {
 
 class Process {
 
-private:
+public:
     int pid;
     vector<VirtualMemoryArea*> vma_list;
+    vector<PageTableEntry*> page_table;
 
-public:
     explicit Process(int pid);
     void AddVirtualMemoryArea(VirtualMemoryArea* vma);
 

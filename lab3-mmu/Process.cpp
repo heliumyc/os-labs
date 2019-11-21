@@ -4,7 +4,9 @@
 
 #include "Process.h"
 
-Process::Process(int pid) : pid(pid) {}
+Process::Process(int pid) : pid(pid) {
+    page_table.resize(PTE_SIZE);
+}
 
 void Process::AddVirtualMemoryArea(VirtualMemoryArea *vma) {
     vma_list.push_back(vma);

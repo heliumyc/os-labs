@@ -7,9 +7,9 @@
 #include "Pager.h"
 #include "MyReader.h"
 #include "Process.h"
+#include "MyLogger.h"
 
 using namespace std;
-const unsigned int PTE_SIZE = 64;
 
 PagerEnum PAGER_SPEC;
 
@@ -108,35 +108,81 @@ void ReadArgs(int argc, char** argv) {
 }
 
 Frame* GetFrame(deque<Frame*>& free_frame_list, Pager& pager) {
-
     // allocate frame from free list
     Frame* frame = free_frame_list.front();
     if (frame == nullptr) {
+        // no free frame available, find a victim, kill it
         frame = pager.SelectVictimFrame();
     }
     return frame;
 }
 
-void Simulation(MyReader& reader, deque<Frame*>& free_frame_list, vector<Process*>& process_list) {
+void Simulation(MyReader& reader, MyLogger& logger, Pager& pager, deque<Frame*>& free_frame_list, vector<Process*>& process_list) {
+    /// premature optimization is the root of evil
     Instruction current_instruction = {};
-    Process* current_process;
+    Process* current_process = nullptr;
+    unsigned long long instruction_counter = 0;
 
     while (reader.GetNextInstruction(current_instruction)) {
-        switch (current_instruction.operation) {
-            case 'c':
-                current_process = process_list[current_instruction.operand];
-                break;
-            case 'r':
+        Transition transition = {};
+        if (current_instruction.operation == 'c') {
+            current_process = process_list[current_instruction.operand];
+        } else if (current_instruction.operation == 'e') {
+            // need to unmap all your stuffs in the frametable and also in pagetable, but keep others intact
+            // clear is_start!
+            current_process = nullptr;
+        } else {
+            // check if a victim frame is selected and evicted
+            // if not just insert it to
+            auto pte = current_process->page_table[current_instruction.operand];
+            if (!pte->PRESENT) {
+                // get frame
+                auto new_frame = GetFrame(free_frame_list, pager);
+                // unmap
 
-                break;
-            case 'w':
-                break;
-            case 'e':
-                // just ignore it!
-                break;
+
+                // save unmapped frame to disk if necessary
+
+                // fill in frame with page
+
+                // map to new user
+
+                // set ref or mod bit
+            }
+
         }
+
+        // -O
+        if (PRINT_OUTPUT) logger.PrintTransition(instruction_counter, current_instruction.operation, current_instruction.operand, transition);
+        // -y
+        if (PRINT_CURRENT_ALL_PAGE_TABLE_PER_INSTRUCTION) {
+            for (const auto& p: process_list) {
+                logger.PrintPageTable(p->page_table, p->pid);
+            }
+        } else if (PRINT_CURRENT_PAGE_TABLE_PER_INSTRUCTION) {
+            // -x
+            logger.PrintPageTable(current_process->page_table, current_process->pid);
+        }
+        //
+        if (PRINT_CURRENT_PAGE_TABLE_PER_INSTRUCTION) {
+            logger.PrintPageTable(current_process->page_table, current_process->pid);
+        }
+        // -f
+        if (PRINT_FRAME_TABLE_PER_INSTRUCTION) logger.PrintFrameTable(*pager.frame_table);
+
+        instruction_counter++;
     }
 
+    // -P
+    if (PRINT_FINAL_PAGE_TABLE) {
+        for (const auto& p: process_list) {
+            logger.PrintPageTable(p->page_table, p->pid);
+        }
+    }
+    // -F
+    if (PRINT_FINAL_FRAME_TABLE) logger.PrintFrameTable(*pager.frame_table);
+    // -S
+    /// TODO
 }
 
 int main(int argc, char** argv) {
@@ -157,11 +203,14 @@ int main(int argc, char** argv) {
     }
     random_file_ifs.close();
 
+    // init frame table
     // init frame pool
+    vector<Frame*> global_frame_table( FRAME_NUM );
     deque<Frame*> free_frame_list;
-    Frame* new_frame;
-    for (int i = 0; i < 128; ++i) {
-        new_frame = {};
+
+    for (int i = 0; i < FRAME_NUM; ++i) {
+        auto* new_frame = new Frame();
+        global_frame_table[i] = new_frame;
         free_frame_list.push_back(new_frame);
     }
 
@@ -180,8 +229,13 @@ int main(int argc, char** argv) {
         }
     }
 
-    // start simulation
-    Simulation(reader, free_frame_list, process_list);
+    // using FIFO as default pager
+    Pager *pager = PagerFactory::CreatePager(PAGER_SPEC);
+    pager->SetFrameTable(&global_frame_table);
+
+    MyLogger logger(&cout);
+    // is_start simulation
+    Simulation(reader, logger, *pager, free_frame_list, process_list);
 
     return 0;
 }
