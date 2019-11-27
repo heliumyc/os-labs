@@ -8,6 +8,7 @@
 #include "MyReader.h"
 #include "Process.h"
 #include "MyLogger.h"
+#include "MyRandomGenerator.h"
 
 using namespace std;
 
@@ -23,18 +24,10 @@ bool PRINT_CURRENT_ALL_PAGE_TABLE_PER_INSTRUCTION = false;
 bool PRINT_FRAME_TABLE_PER_INSTRUCTION = false;
 bool PRINT_AGING = false;
 
-long FRAME_NUM = 0;
+int FRAME_NUM = 0;
 
 string INPUT_PATH;
 string RANDOM_PATH;
-
-vector<int> RANDVALS;
-int RANDVALS_SIZE;
-int OBF = 0;
-
-int MyRandom(int burst) {
-    return RANDVALS[(OBF++) % RANDVALS_SIZE] % burst;
-}
 
 void ReadArgs(int argc, char** argv) {
     int opt;
@@ -48,7 +41,7 @@ void ReadArgs(int argc, char** argv) {
             case 'o':
                 options_choice = string(optarg); break;
             case 'f':
-                FRAME_NUM = strtol(optarg, nullptr, 0); break;
+                FRAME_NUM = (int)strtol(optarg, nullptr, 0); break;
             default:
                 cout << "unknown args" << endl; break;
         }
@@ -107,71 +100,212 @@ void ReadArgs(int argc, char** argv) {
     }
 }
 
-Frame* GetFrame(deque<Frame*>& free_frame_list, Pager& pager) {
+Frame* GetFrame(deque<Frame*>& free_frame_list, Pager& pager, bool& page_out) {
     // allocate frame from free list
-    Frame* frame = free_frame_list.front();
-    if (frame == nullptr) {
-        // no free frame available, find a victim, kill it
+    Frame* frame;
+    if (!free_frame_list.empty()) {
+        frame = free_frame_list.front();
+        free_frame_list.pop_front();
+        page_out = false;
+    }
+    else {
         frame = pager.SelectVictimFrame();
+        page_out = true;
     }
     return frame;
 }
 
+bool IterateCheckVma(const vector<VirtualMemoryArea*>& vma_list, int vpage, const function<bool(const VirtualMemoryArea& vma)>& func) {
+    // this can be optimized by interval tree or segment tree
+    // BUT premature optimization is the root of evil. so just forget it
+    for (const auto& vma: vma_list) {
+        if (vpage >= vma->start_vpage && vpage <= vma->end_vpage) {
+            return func(*vma);
+        }
+    }
+    return false;
+}
+
+void ExitProcess(Process& process, deque<Frame*>& free_frame_list, vector<Frame*> frame_table, Transition& transition) {
+   for (auto& pte: process.page_table) {
+       if (pte->PRESENT) {
+           auto* frame = frame_table[pte->FRAME_NUM];
+           transition.unmap_frames.emplace_back(frame->pid, frame->vpage,  pte->FILE_MAPPED && pte->MODIFIED);
+           frame->pid = -1;
+           frame->vpage = -1;
+           frame->mapped = false;
+           free_frame_list.push_back(frame);
+           // note that when exit, you unmap some frame and page, and they count too
+           process.pstats.unmaps++;
+           (pte->FILE_MAPPED && pte->MODIFIED) ? process.pstats.fouts++ : 0;
+       }
+
+       pte->CREATED = 0;
+       pte->FILE_MAPPED = 0;
+       pte->WRITE_PROTECT = 0;
+       pte->SWAPPED = 0;
+       pte->Unmap();
+       // count on unmap of exit process?
+   }
+}
+
+void CalcCost(const vector<Process*>& process_list, CostStats& cost_stats) {
+    for(const auto& p: process_list) {
+        cost_stats.cost += 400 * (p->pstats.maps + p->pstats.unmaps);
+        cost_stats.cost += 3000 * (p->pstats.ins + p->pstats.outs);
+        cost_stats.cost += 2500 * (p->pstats.fins + p->pstats.fouts);
+        cost_stats.cost += 150 * (p->pstats.zeros);
+        cost_stats.cost += 240 * (p->pstats.segv);
+        cost_stats.cost += 300 * (p->pstats.segprot);
+        cost_stats.cost += 1 * (p->pstats.access);
+    }
+    cost_stats.cost += 121 * (cost_stats.ctx_switches);
+    cost_stats.cost += 175 * (cost_stats.process_exits);
+}
+
 void Simulation(MyReader& reader, MyLogger& logger, Pager& pager, deque<Frame*>& free_frame_list, vector<Process*>& process_list) {
     /// premature optimization is the root of evil
+    CostStats cost_stats = {};
     Instruction current_instruction = {};
     Process* current_process = nullptr;
-    unsigned long long instruction_counter = 0;
+    int instruction_counter = 0;
 
     while (reader.GetNextInstruction(current_instruction)) {
+        cost_stats.inst_count++;
         Transition transition = {};
         if (current_instruction.operation == 'c') {
+            /// what if pid invalid?
+            cost_stats.ctx_switches++;
             current_process = process_list[current_instruction.operand];
-        } else if (current_instruction.operation == 'e') {
+            transition.is_start = true;
+            transition.pid = current_process->pid;
+        }
+        else if (current_instruction.operation == 'e') {
             // need to unmap all your stuffs in the frametable and also in pagetable, but keep others intact
-            // clear is_start!
+            transition.is_end = true;
+            transition.pid = current_process->pid;
+
+            ExitProcess(*current_process, free_frame_list, *pager.frame_table, transition);
+
             current_process = nullptr;
-        } else {
-            // check if a victim frame is selected and evicted
-            // if not just insert it to
-            auto pte = current_process->page_table[current_instruction.operand];
-            if (!pte->PRESENT) {
-                // get frame
-                auto new_frame = GetFrame(free_frame_list, pager);
-                // unmap
+            cost_stats.process_exits++;
+        }
+        // check for w and r
+        else {
+            int current_vpage = current_instruction.operand;
 
+            // check if the operand is valid or not
+            bool operandValid = IterateCheckVma(current_process->vma_list, current_vpage, [](const VirtualMemoryArea& vma){
+                return 1;
+            });
+            if (!operandValid) {
+                transition.segment_error = true;
+                current_process->pstats.segv++;
+            }
+            else {
+                // check if a victim frame is selected and evicted
+                // if not just insert it to
+                auto& pte = current_process->page_table[current_vpage];
 
-                // save unmapped frame to disk if necessary
+                // check if this page is created or not
+                if (!pte->CREATED) {
+                    pte->CREATED = 1;
+                    pte->FILE_MAPPED = IterateCheckVma(current_process->vma_list, current_vpage, [](const VirtualMemoryArea& vma){
+                        return vma.file_mapped == 1;
+                    });
+                    pte->WRITE_PROTECT = IterateCheckVma(current_process->vma_list, current_vpage, [](const VirtualMemoryArea& vma){
+                        return vma.write_protected == 1;
+                    });
+                }
 
-                // fill in frame with page
+                // page fault occurs
+                if (!pte->PRESENT) {
+                    // get a new frame to map the page required
+                    pte->PRESENT = 1;
 
-                // map to new user
+                    bool page_out = false;
+                    auto victim_frame = GetFrame(free_frame_list, pager, page_out);
+
+                    // frame table is full, some frame is out
+                    if (page_out) {
+                        // unmap, unmap means remove information in the pagetable
+                        // means there is a page out
+                        auto victim_process = process_list[victim_frame->pid];
+                        auto& out_page = victim_process->page_table[victim_frame->vpage];
+
+                        // !!! note that if file mapped, you do not throw page to swap device but directly the mapped file
+                        out_page->SWAPPED = (out_page->MODIFIED || out_page->SWAPPED) && !out_page->FILE_MAPPED;
+
+                        // logging
+                        transition.unmap = true; // UNMAP
+                        transition.unmap_frames.emplace_back(victim_frame->pid, victim_frame->vpage);
+                        transition.page_out = out_page->MODIFIED; // FOUT/OUT
+                        transition.out_page_file_mapped = out_page->FILE_MAPPED;
+
+                        if (transition.page_out) {
+                            transition.out_page_file_mapped? victim_process->pstats.fouts++: victim_process->pstats.outs++;
+                        }
+
+                        // unmap
+                        // no, unmaps count belongs to its owner, not current process
+                        victim_process->pstats.unmaps++;
+                        out_page->Unmap();
+                        victim_frame->Unmap();
+                    }
+                    pte->FRAME_NUM = victim_frame->fid;
+
+                    current_process->pstats.maps++;
+
+                    // fill in frame with the new page
+                    victim_frame->pid = current_process->pid;
+                    victim_frame->vpage = current_vpage;
+                    victim_frame->mapped = true;
+
+                    // logging
+                    transition.page_in = true;
+                    transition.in_page_intact = !pte->FILE_MAPPED && !pte->SWAPPED;
+                    transition.in_page_file_mapped = pte->FILE_MAPPED;
+                    transition.in_page_intact ? current_process->pstats.zeros++:
+                        (transition.in_page_file_mapped? current_process->pstats.fins++: current_process->pstats.ins++);
+
+                    transition.map = true;
+                    transition.map_frame = victim_frame->fid;
+                }
 
                 // set ref or mod bit
-            }
+                pte->REFERENCED = 1;
+                if (current_instruction.operation == 'w') {
+                    if (pte->WRITE_PROTECT) {
+                        transition.segment_protect = true;
+                        current_process->pstats.segprot++;
+                    } else {
+                        pte->MODIFIED = 1;
+                    }
+                }
 
+            }
+            current_process->pstats.access++;
         }
 
         // -O
         if (PRINT_OUTPUT) logger.PrintTransition(instruction_counter, current_instruction.operation, current_instruction.operand, transition);
-        // -y
-        if (PRINT_CURRENT_ALL_PAGE_TABLE_PER_INSTRUCTION) {
-            for (const auto& p: process_list) {
-                logger.PrintPageTable(p->page_table, p->pid);
+        if (!transition.is_start && !transition.is_end && !transition.segment_error) {
+            // -y
+            if (PRINT_CURRENT_ALL_PAGE_TABLE_PER_INSTRUCTION) {
+                for (const auto& p: process_list) {
+                    logger.PrintPageTable(p->page_table, p->pid);
+                }
+            } else if (PRINT_CURRENT_PAGE_TABLE_PER_INSTRUCTION) {
+                // -x
+                logger.PrintPageTable(current_process->page_table, current_process->pid);
             }
-        } else if (PRINT_CURRENT_PAGE_TABLE_PER_INSTRUCTION) {
-            // -x
-            logger.PrintPageTable(current_process->page_table, current_process->pid);
+            // -f
+            if (PRINT_FRAME_TABLE_PER_INSTRUCTION) logger.PrintFrameTable(*pager.frame_table);
         }
-        //
-        if (PRINT_CURRENT_PAGE_TABLE_PER_INSTRUCTION) {
-            logger.PrintPageTable(current_process->page_table, current_process->pid);
-        }
-        // -f
-        if (PRINT_FRAME_TABLE_PER_INSTRUCTION) logger.PrintFrameTable(*pager.frame_table);
-
         instruction_counter++;
     }
+
+    CalcCost(process_list, cost_stats);
 
     // -P
     if (PRINT_FINAL_PAGE_TABLE) {
@@ -182,7 +316,7 @@ void Simulation(MyReader& reader, MyLogger& logger, Pager& pager, deque<Frame*>&
     // -F
     if (PRINT_FINAL_FRAME_TABLE) logger.PrintFrameTable(*pager.frame_table);
     // -S
-    /// TODO
+    if (PRINT_SUMMARY) logger.PrintSummary(process_list, cost_stats);
 }
 
 int main(int argc, char** argv) {
@@ -192,13 +326,16 @@ int main(int argc, char** argv) {
     ifstream input_ifs(INPUT_PATH);
     MyReader reader(&input_ifs);
 
+
+    MyRandomGenerator random_gen;
+
     // read random file
     ifstream random_file_ifs(RANDOM_PATH);
-    random_file_ifs >> RANDVALS_SIZE;
+    random_file_ifs >> random_gen.random_size;
     long next_int;
     int count = 0;
-    while (random_file_ifs >> next_int && count < RANDVALS_SIZE) {
-        RANDVALS.push_back(next_int);
+    while (random_file_ifs >> next_int && count < random_gen.random_size) {
+        random_gen.random_vals.push_back(next_int);
         count++;
     }
     random_file_ifs.close();
@@ -209,7 +346,7 @@ int main(int argc, char** argv) {
     deque<Frame*> free_frame_list;
 
     for (int i = 0; i < FRAME_NUM; ++i) {
-        auto* new_frame = new Frame();
+        auto* new_frame = new Frame{.fid = i};
         global_frame_table[i] = new_frame;
         free_frame_list.push_back(new_frame);
     }
@@ -221,17 +358,20 @@ int main(int argc, char** argv) {
     int process_count = reader.GetInt();
     for (int i = 0; i < process_count; i++) {
         int vma_count = reader.GetInt();
-        Process process(i);
+        auto* process_ptr = new Process(i);
         while (vma_count--) {
-            VirtualMemoryArea vma = {};
-            reader.GetNextVma(vma);
-            process.AddVirtualMemoryArea(&vma);
+            auto* vma = new VirtualMemoryArea;
+            reader.GetNextVma(*vma);
+            process_ptr->AddVirtualMemoryArea(vma);
         }
+        process_list.push_back(process_ptr);
     }
 
     // using FIFO as default pager
     Pager *pager = PagerFactory::CreatePager(PAGER_SPEC);
-    pager->SetFrameTable(&global_frame_table);
+    pager->SetFrameTable(&global_frame_table, FRAME_NUM);
+    pager->SetRandomGenerator(&random_gen);
+    pager->SetProcessList(&process_list);
 
     MyLogger logger(&cout);
     // is_start simulation

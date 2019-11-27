@@ -9,6 +9,7 @@
 #include "../Pager.h"
 
 class FIFO_Pager : public Pager {
+    unsigned int head = 0;
     Frame* SelectVictimFrame() override;
 };
 

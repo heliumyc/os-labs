@@ -5,5 +5,7 @@
 #include "FIFO_Pager.h"
 
 Frame* FIFO_Pager::SelectVictimFrame() {
-    return nullptr;
+    Frame* victim = ( *this->frame_table )[head];
+    head = ( head + 1 ) % this->frame_table->size();
+    return victim;
 }

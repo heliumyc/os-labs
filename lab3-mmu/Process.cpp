@@ -5,7 +5,9 @@
 #include "Process.h"
 
 Process::Process(int pid) : pid(pid) {
-    page_table.resize(PTE_SIZE);
+    for (int i = 0; i < PTE_SIZE; ++i) {
+        page_table.push_back(new PageTableEntry);
+    }
 }
 
 void Process::AddVirtualMemoryArea(VirtualMemoryArea *vma) {
