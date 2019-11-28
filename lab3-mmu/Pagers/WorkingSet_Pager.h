@@ -9,8 +9,8 @@
 #include "../Pager.h"
 
 class WorkingSet_Pager : public Pager {
-    Frame* SelectVictimFrame() override;
-
+    int hand = 0;
+    Frame* SelectVictimFrame(Transition& transition) override;
 };
 
 

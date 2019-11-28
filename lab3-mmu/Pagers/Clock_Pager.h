@@ -10,7 +10,7 @@
 
 class Clock_Pager : public Pager{
     unsigned int HAND = 0;
-    Frame* SelectVictimFrame() override;
+    Frame* SelectVictimFrame(Transition& transition) override;
 };
 
 

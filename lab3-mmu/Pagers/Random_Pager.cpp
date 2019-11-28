@@ -4,7 +4,7 @@
 
 #include "Random_Pager.h"
 
-Frame *Random_Pager::SelectVictimFrame() {
+Frame *Random_Pager::SelectVictimFrame(Transition& transition) {
     int random_victim_index = random_generator->GetRandomInt() % frame_table_size;
     return ( *frame_table )[random_victim_index];
 }

@@ -10,7 +10,7 @@
 #include "../Pager.h"
 
 class Random_Pager : public Pager  {
-    Frame* SelectVictimFrame() override;
+    Frame* SelectVictimFrame(Transition& transition) override;
 };
 
 #endif //LAB3_MMU_RANDOM_PAGER_H

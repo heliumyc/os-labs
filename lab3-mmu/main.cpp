@@ -100,7 +100,7 @@ void ReadArgs(int argc, char** argv) {
     }
 }
 
-Frame* GetFrame(deque<Frame*>& free_frame_list, Pager& pager, bool& page_out) {
+Frame* GetFrame(deque<Frame*>& free_frame_list, Pager& pager, bool& page_out, Transition& transition) {
     // allocate frame from free list
     Frame* frame;
     if (!free_frame_list.empty()) {
@@ -109,7 +109,7 @@ Frame* GetFrame(deque<Frame*>& free_frame_list, Pager& pager, bool& page_out) {
         page_out = false;
     }
     else {
-        frame = pager.SelectVictimFrame();
+        frame = pager.SelectVictimFrame(transition);
         page_out = true;
     }
     return frame;
@@ -131,9 +131,7 @@ void ExitProcess(Process& process, deque<Frame*>& free_frame_list, vector<Frame*
        if (pte->PRESENT) {
            auto* frame = frame_table[pte->FRAME_NUM];
            transition.unmap_frames.emplace_back(frame->pid, frame->vpage,  pte->FILE_MAPPED && pte->MODIFIED);
-           frame->pid = -1;
-           frame->vpage = -1;
-           frame->mapped = false;
+           frame->Unmap();
            free_frame_list.push_back(frame);
            // note that when exit, you unmap some frame and page, and they count too
            process.pstats.unmaps++;
@@ -172,7 +170,9 @@ void Simulation(MyReader& reader, MyLogger& logger, Pager& pager, deque<Frame*>&
 
     while (reader.GetNextInstruction(current_instruction)) {
         cost_stats.inst_count++;
-        Transition transition = {};
+        Transition transition = {.instruction_idx=instruction_counter,
+                                 .instruction_operation=current_instruction.operation,
+                                 .instruction_operand=current_instruction.operand};
         if (current_instruction.operation == 'c') {
             /// what if pid invalid?
             cost_stats.ctx_switches++;
@@ -224,7 +224,7 @@ void Simulation(MyReader& reader, MyLogger& logger, Pager& pager, deque<Frame*>&
                     pte->PRESENT = 1;
 
                     bool page_out = false;
-                    auto victim_frame = GetFrame(free_frame_list, pager, page_out);
+                    auto victim_frame = GetFrame(free_frame_list, pager, page_out, transition);
 
                     // frame table is full, some frame is out
                     if (page_out) {
@@ -260,6 +260,7 @@ void Simulation(MyReader& reader, MyLogger& logger, Pager& pager, deque<Frame*>&
                     victim_frame->pid = current_process->pid;
                     victim_frame->vpage = current_vpage;
                     victim_frame->mapped = true;
+                    victim_frame->last_use = instruction_counter;
 
                     // logging
                     transition.page_in = true;
@@ -287,8 +288,15 @@ void Simulation(MyReader& reader, MyLogger& logger, Pager& pager, deque<Frame*>&
             current_process->pstats.access++;
         }
 
+        // -a
+        if (PRINT_AGING) {
+            transition.print_aging = true;
+        }
+
         // -O
-        if (PRINT_OUTPUT) logger.PrintTransition(instruction_counter, current_instruction.operation, current_instruction.operand, transition);
+        if (PRINT_OUTPUT) {
+            logger.PrintTransition(transition);
+        }
         if (!transition.is_start && !transition.is_end && !transition.segment_error) {
             // -y
             if (PRINT_CURRENT_ALL_PAGE_TABLE_PER_INSTRUCTION) {

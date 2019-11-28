@@ -18,7 +18,7 @@ private:
 public:
     explicit MyLogger(ostream *output);
 
-    void PrintTransition(unsigned long long instruction_counter, char operation, int operand, const Transition& transition);
+    void PrintTransition(const Transition& transition);
     void PrintPageTable(const vector<PageTableEntry*>& page_table, unsigned int pid);
     void PrintFrameTable(const vector<Frame*>& frame_table);
     static void PrintSummary(const vector<Process*>& process_list, const CostStats& cost_stats);

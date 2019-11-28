@@ -4,7 +4,7 @@
 
 #include "Clock_Pager.h"
 
-Frame *Clock_Pager::SelectVictimFrame() {
+Frame *Clock_Pager::SelectVictimFrame(Transition& transition) {
     while(true) {
         auto* frame = (*frame_table)[(HAND++) % frame_table_size];
         auto* pte = (*process_list)[frame->pid]->page_table[frame->vpage];

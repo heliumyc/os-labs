@@ -9,8 +9,9 @@
 #include "../Pager.h"
 
 class ESC_NRU_Pager : public Pager{
-    Frame* SelectVictimFrame() override;
-
+    int timer = 0;
+    int hand = 0;
+    Frame* SelectVictimFrame(Transition& transition) override;
 };
 
 

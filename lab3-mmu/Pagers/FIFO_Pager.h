@@ -10,7 +10,7 @@
 
 class FIFO_Pager : public Pager {
     unsigned int head = 0;
-    Frame* SelectVictimFrame() override;
+    Frame* SelectVictimFrame(Transition& transition) override;
 };
 
 

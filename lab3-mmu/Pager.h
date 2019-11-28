@@ -21,7 +21,7 @@ public:
     int frame_table_size;
     vector<Frame*>* frame_table{};
     vector<Process*>* process_list;
-    virtual Frame* SelectVictimFrame() = 0;
+    virtual Frame* SelectVictimFrame(Transition& transition) = 0;
     void SetFrameTable(vector<Frame*>* global_frame_table, int global_frame_table_size);
     void SetRandomGenerator(MyRandomGenerator* global_random_generator);
     void SetProcessList(vector<Process*>* global_process_list);

@@ -2,14 +2,16 @@
 // Created by CONG YU on 2019/11/18.
 //
 
+#include <iomanip>
 #include "MyLogger.h"
 
 MyLogger::MyLogger(ostream *output) : output(output) {}
 
-void MyLogger::PrintTransition(unsigned long long instruction_counter, char operation, int operand,
-                               const Transition &transition) {
+void MyLogger::PrintTransition(const Transition &transition) {
 
-    *output << instruction_counter << ": ==> " << operation << " " << operand << endl;
+    *output << transition.instruction_idx << ": ==> " << transition.instruction_operation << " ";
+    *output << transition.instruction_operand << endl;
+
     if (transition.segment_error) {
         *output << " " << "SEGV" << endl;
     } else if (transition.is_start){
@@ -25,9 +27,36 @@ void MyLogger::PrintTransition(unsigned long long instruction_counter, char oper
     } else {
         // possible unload frame
         if (transition.unmap) {
-            for (auto triplet: transition.unmap_frames) {
-                *output << " UNMAP " << std::get<0>(triplet) << ":" << std::get<1>(triplet) << endl;
+            if (transition.print_aging) {
+                if (transition.esc_nru_msg != nullptr) {
+                    auto* aging = transition.esc_nru_msg;
+                    *output << "ASELECT: hand=" << std::setw(2) << aging->hand << " " << aging->reset << " | " << aging->lowest;
+                    *output << " " << std::setw(2) << aging->victim_frame << " " << std::setw(2) << aging->scan_num << endl;
+                    delete transition.esc_nru_msg;
+                } else if (transition.plain_aging_msg != nullptr) {
+                    auto* aging = transition.plain_aging_msg;
+                    *output << "ASELECT " << aging->scan_start << "-" << aging->scan_end << " | ";
+                    for (auto& p: aging->frame_info) {
+                        *output << p.first << ":" << std::hex << p.second << std::dec<< " ";
+                    }
+                    *output << "| " << aging->frame_selected << endl;
+                    delete transition.plain_aging_msg;
+                } else if (transition.ws_aging_msg != nullptr) {
+                    auto* aging = transition.ws_aging_msg;
+                    *output << "ASELECT " << aging->scan_start << "-" << aging->scan_end << " | ";
+                    for (auto& tuple: aging->frame_info) {
+                        *output << std::get<0>(tuple) << "(" << std::get<1>(tuple) << " ";
+                        *output << std::get<2>(tuple) << ":" << std::get<3>(tuple)  << " " << std::get<4>(tuple) << ") ";
+                    }
+                    if (aging->early_stop) {
+                        *output << "STOP(" << aging->scan_cnt << ") ";
+                    }
+                    *output << "| " << aging->frame_selected << endl;
+                    delete transition.ws_aging_msg;
+                }
             }
+            auto triplet = transition.unmap_frames[0];
+            *output << " UNMAP " << std::get<0>(triplet) << ":" << std::get<1>(triplet) << endl;
         }
         // possible some frame is swapped out into the swap device
         if (transition.page_out) {
