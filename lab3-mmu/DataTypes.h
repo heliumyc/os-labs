@@ -6,6 +6,9 @@
 #define LAB3_MMU_DATATYPES_H
 
 #include <vector>
+#include <tuple>
+#include <utility>
+#include <cstdint>
 
 typedef struct {
     int fid = -1;
@@ -13,7 +16,7 @@ typedef struct {
     int vpage = -1;
     bool mapped = false;
     uint32_t aging = 0;
-    uint32_t last_use = 0;
+    int last_use = 0;
 
     void Unmap() {
         pid = -1;

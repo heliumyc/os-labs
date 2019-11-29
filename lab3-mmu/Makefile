@@ -3,11 +3,11 @@ CC:=g++
 SHELL:=/bin/bash
 GCCVER=9.1
 SRCS := $(wildcard *.h *.cpp ./Pagers/*.h ./Pagers/*.cpp)
-sched: $(SRCS)
+mmu: $(SRCS)
 	module unload; \
 	module load gcc-$(GCCVER); \
 	gcc -v; \
-	$(CC) $(CFLAGS) $(SRCS) -std=c++17 -o sched
+	$(CC) $(CFLAGS) $(SRCS) -std=c++17 -o mmu
 testgcc:
 	gcc -v; \
 	module load gcc-$(GCCVER); \

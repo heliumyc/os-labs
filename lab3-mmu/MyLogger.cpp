@@ -44,9 +44,9 @@ void MyLogger::PrintTransition(const Transition &transition) {
                 } else if (transition.ws_aging_msg != nullptr) {
                     auto* aging = transition.ws_aging_msg;
                     *output << "ASELECT " << aging->scan_start << "-" << aging->scan_end << " | ";
-                    for (auto& tuple: aging->frame_info) {
-                        *output << std::get<0>(tuple) << "(" << std::get<1>(tuple) << " ";
-                        *output << std::get<2>(tuple) << ":" << std::get<3>(tuple)  << " " << std::get<4>(tuple) << ") ";
+                    for (auto& t: aging->frame_info) {
+                        *output << std::get<0>(t) << "(" << std::get<1>(t) << " ";
+                        *output << std::get<2>(t) << ":" << std::get<3>(t) << " " << std::get<4>(t) << ") ";
                     }
                     if (aging->early_stop) {
                         *output << "STOP(" << aging->scan_cnt << ") ";
@@ -55,8 +55,8 @@ void MyLogger::PrintTransition(const Transition &transition) {
                     delete transition.ws_aging_msg;
                 }
             }
-            auto triplet = transition.unmap_frames[0];
-            *output << " UNMAP " << std::get<0>(triplet) << ":" << std::get<1>(triplet) << endl;
+            auto unmapped_frame = transition.unmap_frames[0];
+            *output << " UNMAP " << std::get<0>(unmapped_frame) << ":" << std::get<1>(unmapped_frame) << endl;
         }
         // possible some frame is swapped out into the swap device
         if (transition.page_out) {

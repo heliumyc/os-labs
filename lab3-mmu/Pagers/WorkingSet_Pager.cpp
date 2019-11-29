@@ -3,6 +3,7 @@
 //
 
 #include "WorkingSet_Pager.h"
+#include "../DataTypes.h"
 
 Frame *WorkingSet_Pager::SelectVictimFrame(Transition& transition) {
     transition.ws_aging_msg = new WS_Aging_Msg;

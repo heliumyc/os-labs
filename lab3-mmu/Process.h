@@ -6,6 +6,7 @@
 #define LAB3_MMU_PROCESS_H
 
 #include <vector>
+#include <cstring>
 #include "DataTypes.h"
 
 using namespace std;

@@ -3,6 +3,7 @@
 //
 
 #include "Aging_Pager.h"
+#include "../DataTypes.h"
 
 Frame *Aging_Pager::SelectVictimFrame(Transition& transition) {
     transition.plain_aging_msg = new Plain_Aging_Msg;

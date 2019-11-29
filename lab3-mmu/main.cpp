@@ -3,6 +3,8 @@
 #include <getopt.h>
 #include <vector>
 #include <fstream>
+#include <functional>
+#include <numeric>
 #include "DataTypes.h"
 #include "Pager.h"
 #include "MyReader.h"
@@ -115,17 +117,6 @@ Frame* GetFrame(deque<Frame*>& free_frame_list, Pager& pager, bool& page_out, Tr
     return frame;
 }
 
-bool IterateCheckVma(const vector<VirtualMemoryArea*>& vma_list, int vpage, const function<bool(const VirtualMemoryArea& vma)>& func) {
-    // this can be optimized by interval tree or segment tree
-    // BUT premature optimization is the root of evil. so just forget it
-    for (const auto& vma: vma_list) {
-        if (vpage >= vma->start_vpage && vpage <= vma->end_vpage) {
-            return func(*vma);
-        }
-    }
-    return false;
-}
-
 void ExitProcess(Process& process, deque<Frame*>& free_frame_list, vector<Frame*> frame_table, Transition& transition) {
    for (auto& pte: process.page_table) {
        if (pte->PRESENT) {
@@ -195,8 +186,9 @@ void Simulation(MyReader& reader, MyLogger& logger, Pager& pager, deque<Frame*>&
             int current_vpage = current_instruction.operand;
 
             // check if the operand is valid or not
-            bool operandValid = IterateCheckVma(current_process->vma_list, current_vpage, [](const VirtualMemoryArea& vma){
-                return 1;
+            bool operandValid = std::accumulate(current_process->vma_list.begin(), current_process->vma_list.end(), false,
+                    [&](bool acc, const VirtualMemoryArea* vma) {
+                    return acc || (current_vpage >= vma->start_vpage && current_vpage <= vma->end_vpage);
             });
             if (!operandValid) {
                 transition.segment_error = true;
@@ -210,12 +202,14 @@ void Simulation(MyReader& reader, MyLogger& logger, Pager& pager, deque<Frame*>&
                 // check if this page is created or not
                 if (!pte->CREATED) {
                     pte->CREATED = 1;
-                    pte->FILE_MAPPED = IterateCheckVma(current_process->vma_list, current_vpage, [](const VirtualMemoryArea& vma){
-                        return vma.file_mapped == 1;
-                    });
-                    pte->WRITE_PROTECT = IterateCheckVma(current_process->vma_list, current_vpage, [](const VirtualMemoryArea& vma){
-                        return vma.write_protected == 1;
-                    });
+                    pte->FILE_MAPPED = std::accumulate(current_process->vma_list.begin(), current_process->vma_list.end(), false,
+                            [&](bool acc, const VirtualMemoryArea* vma) {
+                            return acc || (current_vpage >= vma->start_vpage && current_vpage <= vma->end_vpage && vma->file_mapped == 1);
+                   });
+                    pte->WRITE_PROTECT = std::accumulate(current_process->vma_list.begin(), current_process->vma_list.end(), false,
+                            [&](bool acc, const VirtualMemoryArea* vma) {
+                            return acc || (current_vpage >= vma->start_vpage && current_vpage <= vma->end_vpage && vma->write_protected == 1);
+                   });
                 }
 
                 // page fault occurs
@@ -238,7 +232,7 @@ void Simulation(MyReader& reader, MyLogger& logger, Pager& pager, deque<Frame*>&
 
                         // logging
                         transition.unmap = true; // UNMAP
-                        transition.unmap_frames.emplace_back(victim_frame->pid, victim_frame->vpage);
+                        transition.unmap_frames.emplace_back(victim_frame->pid, victim_frame->vpage, out_page->FILE_MAPPED == 1);
                         transition.page_out = out_page->MODIFIED; // FOUT/OUT
                         transition.out_page_file_mapped = out_page->FILE_MAPPED;
 
