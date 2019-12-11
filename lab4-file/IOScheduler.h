@@ -11,11 +11,10 @@
 enum class IOSchedType {FIFO, SSTF, LOOK, CLOOK, FLOOK};
 
 class IOScheduler {
-protected:
-    std::queue<Request> io_queue;
+
 };
 
-class IOSchedFactory {
+class IOSchedulerFactory {
 public:
     static IOScheduler* CreatePager(IOSchedType io_sched_type);
 };

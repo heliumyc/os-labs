@@ -9,7 +9,7 @@
 #include "IO_Schedulers/SSTF_IOScheduler.h"
 #include "IO_Schedulers/FLOOK_IOScheduler.h"
 
-IOScheduler *IOSchedFactory::CreatePager(IOSchedType io_sched_type) {
+IOScheduler *IOSchedulerFactory::CreatePager(IOSchedType io_sched_type) {
     IOScheduler* scheduler = nullptr;
     switch (io_sched_type) {
         case IOSchedType::FIFO: scheduler = new FIFO_IOScheduler(); break;
