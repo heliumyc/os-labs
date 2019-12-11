@@ -14,11 +14,13 @@ public:
     explicit MyReader(istream* input);
     int GetInt();
     MyReader& operator >> (int& number);
+    explicit operator bool() const;
 
 private:
     istream* input;
     string current_line;
     stringstream current_line_stream;
+    bool fail = false;
 
     bool GetNextLine();
 };

@@ -61,10 +61,19 @@ void Simulation(IOScheduler &scheduler) {
     long long current_time = 0;
 }
 
-int main() {
+int main(int arc, char** argv) {
+
+    ReadArgs(arc, argv);
     ifstream ifs(INPUT_PATH);
     MyReader reader(&ifs);
-    IOScheduler *scheduler = IOSchedFactory::CreatePager(IO_SCHED_SPEC);
+    IOScheduler *scheduler = IOSchedulerFactory::CreatePager(IO_SCHED_SPEC);
+
+    // load IO request from input
+    int timestamp, track_num;
+    while (reader >> timestamp) {
+        reader >> track_num;
+        cout << timestamp << " " << track_num << endl;
+    }
     Simulation(*scheduler);
     return 0;
 }

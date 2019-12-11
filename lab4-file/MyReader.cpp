@@ -35,8 +35,15 @@ int MyReader::GetInt() {
 }
 
 MyReader& MyReader::operator>>(int &number) {
-    number = this->GetInt();
+    int tmp = this->GetInt();
+    if (tmp == -1) {
+        fail = true;
+    } else {
+        number = tmp;
+    }
     return *this;
 }
 
-
+MyReader::operator bool() const {
+    return !fail;
+}
