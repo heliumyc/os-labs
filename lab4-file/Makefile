@@ -7,3 +7,6 @@ iosched: $(SRCS)
 	module unload; \
 	module load gcc-$(GCCVER); \
 	$(CC) $(CFLAGS) $(SRCS) -std=c++17 -o iosched
+clean:
+	rm -f iosched;
+	rm -f *.o;
