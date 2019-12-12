@@ -57,23 +57,44 @@ void ReadArgs(int argc, char** argv) {
     }
 }
 
-void Simulation(IOScheduler &scheduler) {
-    long long current_time = 0;
+void Simulation(unique_ptr<IOScheduler> scheduler, queue<unique_ptr<Request>> &io_requests) {
+    for (int current_time = 0;!io_requests.empty() || scheduler->IsActive() || scheduler->IsPending(); ++current_time) {
+        if (current_time == io_requests.front()->timestamp) {
+            // a new request comes at this time
+            // add it to io queue
+            scheduler->AddNewIORequest(std::move(io_requests.front()));
+            io_requests.pop();
+        }
+        if (scheduler->IsActive()) {
+            if (scheduler->IsCompleted()) {
+                // logging summary info
+                scheduler->ClearActive();
+            } else {
+                scheduler->MoveForward();
+            }
+        }
+        // if completed, must clear active state so next pending io will be issued immediately
+        // no one is active now but some is pending
+        if (!scheduler->IsActive() && scheduler->IsPending()){
+            // this must happen immediately after last io has finished
+            scheduler->FetchNextAndStartNewIO();
+        }
+
+        scheduler->IncrementTime();
+    }
 }
 
 int main(int arc, char** argv) {
 
     ReadArgs(arc, argv);
-    ifstream ifs(INPUT_PATH);
-    MyReader reader(&ifs);
-    IOScheduler *scheduler = IOSchedulerFactory::CreatePager(IO_SCHED_SPEC);
+    MyReader reader(std::make_unique<ifstream>(INPUT_PATH));
 
-    // load IO request from input
+    queue<unique_ptr<Request>> io_requests;
+//     load IO request from input
     int timestamp, track_num;
-    while (reader >> timestamp) {
-        reader >> track_num;
-        cout << timestamp << " " << track_num << endl;
+    while (reader >> timestamp >> track_num) {
+        io_requests.push(make_unique<Request>(Request{.timestamp=timestamp, .track_num=track_num}));
     }
-    Simulation(*scheduler);
+    Simulation(IOSchedulerFactory::CreateScheduler(IO_SCHED_SPEC), io_requests);
     return 0;
 }

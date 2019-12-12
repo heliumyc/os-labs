@@ -3,4 +3,4 @@ project(lab4_file)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(lab4_file main.cpp MyReader.cpp MyReader.h IOScheduler.cpp IOScheduler.h IO_Schedulers/FIFO_IOScheduler.cpp IO_Schedulers/FIFO_IOScheduler.h IO_Schedulers/SSTF_IOScheduler.cpp IO_Schedulers/SSTF_IOScheduler.h IO_Schedulers/LOOK_IOScheduler.cpp IO_Schedulers/LOOK_IOScheduler.h IO_Schedulers/CLOOK_IOScheduler.cpp IO_Schedulers/CLOOK_IOScheduler.h IO_Schedulers/FLOOK_IOScheduler.cpp IO_Schedulers/FLOOK_IOScheduler.h CommonTypes.h)
+add_executable(lab4_file main.cpp MyReader.cpp MyReader.h IOScheduler.cpp IOScheduler.h IO_Schedulers/FIFO_IOScheduler.cpp IO_Schedulers/FIFO_IOScheduler.h CommonTypes.h)

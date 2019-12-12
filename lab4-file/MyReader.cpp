@@ -4,8 +4,8 @@
 
 #include "MyReader.h"
 
-MyReader::MyReader(istream* input) {
-    this->input = input;
+MyReader::MyReader(std::unique_ptr<istream> input) {
+    this->input = std::move(input);
 }
 
 bool MyReader::GetNextLine() {
@@ -21,27 +21,42 @@ bool MyReader::GetNextLine() {
     }
 }
 
-int MyReader::GetInt() {
-    int next_int;
-    if (current_line_stream >> next_int) {
-        return next_int;
+unsigned MyReader::GetUInt() {
+    unsigned next;
+    if (current_line_stream >> next) {
+        return next;
     } else {
         if (GetNextLine()) {
-            return GetInt();
+            return GetUInt();
         } else {
-            return -1;
+            fail = true;
+            return next;
         }
     }
 }
 
-MyReader& MyReader::operator>>(int &number) {
-    int tmp = this->GetInt();
+int MyReader::GetInt() {
+    int next;
+    if (current_line_stream >> next) {
+        return next;
+    } else {
+        if (GetNextLine()) {
+            return GetInt();
+        } else {
+            fail = true;
+            return next;
+        }
+    }
+}
+
+MyReader& operator>>(MyReader& reader, int &number) {
+    unsigned tmp = reader.GetUInt();
     if (tmp == -1) {
-        fail = true;
+        reader.fail = true;
     } else {
         number = tmp;
     }
-    return *this;
+    return reader;
 }
 
 MyReader::operator bool() const {

@@ -3,22 +3,36 @@
 //
 
 #include "IOScheduler.h"
-#include "IO_Schedulers/FIFO_IOScheduler.h"
-#include "IO_Schedulers/CLOOK_IOScheduler.h"
-#include "IO_Schedulers/LOOK_IOScheduler.h"
-#include "IO_Schedulers/SSTF_IOScheduler.h"
-#include "IO_Schedulers/FLOOK_IOScheduler.h"
 
-IOScheduler *IOSchedulerFactory::CreatePager(IOSchedType io_sched_type) {
-    IOScheduler* scheduler = nullptr;
+#include <memory>
+#include <iostream>
+#include "IO_Schedulers/FIFO_IOScheduler.h"
+
+std::unique_ptr<IOScheduler> IOSchedulerFactory::CreateScheduler(IOSchedType io_sched_type) {
     switch (io_sched_type) {
-        case IOSchedType::FIFO: scheduler = new FIFO_IOScheduler(); break;
-        case IOSchedType::CLOOK: scheduler = new CLOOK_IOScheduler(); break;
-        case IOSchedType::SSTF: scheduler = new SSTF_IOScheduler(); break;
-        case IOSchedType::FLOOK: scheduler = new FLOOK_IOScheduler(); break;
-        case IOSchedType::LOOK: scheduler = new LOOK_IOScheduler(); break;
+        case IOSchedType::FIFO:  return std::make_unique<FIFO_IOScheduler>(); break;
+//        case IOSchedType::CLOOK: sched = new CLOOK_IOScheduler(); break;
+//        case IOSchedType::SSTF:  sched = new SSTF_IOScheduler(); break;;
+//        case IOSchedType::FLOOK: sched = new FLOOK_IOScheduler(); break;;
+//        case IOSchedType::LOOK:  sched = new LOOK_IOScheduler(); break;;
         default:
-            break;
+            return std::make_unique<FIFO_IOScheduler>();
     }
-    return scheduler;
 }
+
+void IOScheduler::IncrementTime() {
+    time++;
+}
+
+bool IOScheduler::IsActive() {
+    return active_io == nullptr;
+}
+
+bool IOScheduler::IsCompleted() {
+    return active_io->timestamp == time;
+}
+
+void IOScheduler::ClearActive() {
+    active_io.reset();
+}
+

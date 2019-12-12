@@ -11,13 +11,14 @@
 using namespace std;
 class MyReader {
 public:
-    explicit MyReader(istream* input);
+    explicit MyReader(std::unique_ptr<istream> input);
+    unsigned GetUInt();
     int GetInt();
-    MyReader& operator >> (int& number);
+    friend MyReader& operator >> (MyReader& reader, int& number);
     explicit operator bool() const;
 
 private:
-    istream* input;
+    std::unique_ptr<istream> input;
     string current_line;
     stringstream current_line_stream;
     bool fail = false;

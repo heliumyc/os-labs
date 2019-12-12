@@ -6,7 +6,7 @@
 #define LAB4_FILE_COMMONTYPES_H
 
 typedef struct {
-    unsigned int timestamp;
-    unsigned int track_num;
+    int timestamp;
+    int track_num;
 } Request;
 #endif //LAB4_FILE_COMMONTYPES_H
