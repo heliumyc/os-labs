@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <getopt.h>
+#include <memory>
 #include "MyReader.h"
 #include "IOScheduler.h"
 

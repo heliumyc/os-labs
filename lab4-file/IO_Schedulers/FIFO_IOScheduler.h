@@ -6,6 +6,7 @@
 #define LAB4_FILE_FIFO_IOSCHEDULER_H
 
 #include "../IOScheduler.h"
+#include <memory>
 
 using namespace std;
 class FIFO_IOScheduler : public IOScheduler {
