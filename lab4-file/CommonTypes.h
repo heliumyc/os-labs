@@ -4,6 +4,7 @@
 
 #ifndef LAB4_FILE_COMMONTYPES_H
 #define LAB4_FILE_COMMONTYPES_H
+#include <memory>
 
 typedef struct {
     int timestamp;
