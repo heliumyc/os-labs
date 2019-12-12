@@ -7,6 +7,7 @@
 
 #include <istream>
 #include <sstream>
+#include <memory>
 
 using namespace std;
 class MyReader {
