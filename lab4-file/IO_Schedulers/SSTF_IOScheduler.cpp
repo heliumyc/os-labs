@@ -5,7 +5,7 @@
 #include "SSTF_IOScheduler.h"
 
 void SSTF_IOScheduler::AddNewIORequest(std::unique_ptr<Request> &&request) {
-
+    wait_queue.push_back(std::move(request));
 }
 
 void SSTF_IOScheduler::FetchNext() {
