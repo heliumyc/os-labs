@@ -20,5 +20,7 @@ void SSTF_IOScheduler::FetchNext() {
     });
     active_io = std::move(wait_queue.back());
     wait_queue.pop_back();
+    this->direction = this->active_io->track_num > this->head? 1 : -1;
+
 }
 
