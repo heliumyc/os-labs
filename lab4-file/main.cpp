@@ -72,7 +72,6 @@ void Simulation(unique_ptr<IOScheduler> scheduler, queue<unique_ptr<Request>> &i
         }
 
         if (!scheduler->IsActive() && scheduler->IsPending()) {
-
             scheduler->FetchNext();
             scheduler->LogNext();
         }
