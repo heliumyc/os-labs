@@ -43,8 +43,8 @@ void IOScheduler::ClearActive() {
 }
 
 void IOScheduler::MoveForward() {
-    this->head += this->direction;
-    this->total_movement++;
+    head += direction;
+    if (direction != 0) total_movement++;
 }
 
 void IOScheduler::SetLogger(MyLogger &my_logger) {

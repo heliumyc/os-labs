@@ -16,11 +16,14 @@ void SSTF_IOScheduler::FetchNext() {
     // this is a very stupid impl that it sorts everything every time
     std::sort(wait_queue.begin(), wait_queue.end(), [&](auto const & a, auto const & b) -> bool
     {
-        return std::abs(a->track_num - this->head) < std::abs(b->track_num - this->head);
+        if (std::abs(a->track_num - this->head) == std::abs(b->track_num - this->head)) {
+            return a->op_idx > b->op_idx;
+        } else {
+            return std::abs(a->track_num - this->head) > std::abs(b->track_num - this->head);
+        }
     });
     active_io = std::move(wait_queue.back());
     wait_queue.pop_back();
-    this->direction = this->active_io->track_num > this->head? 1 : -1;
-
+    this->direction = this->active_io->track_num > this->head? 1 : this->active_io->track_num < this->head? -1 : 0;
 }
 

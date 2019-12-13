@@ -70,18 +70,24 @@ void Simulation(unique_ptr<IOScheduler> scheduler, queue<unique_ptr<Request>> &i
             scheduler->AddNewIORequest(std::move(io_requests.front()));
             io_requests.pop();
         }
-        if (scheduler->IsActive()) {
-            if (scheduler->IsCompleted()) {
-                // logging summary info
-                scheduler->ClearActive();
-            }
-        }
-        // if completed, must clear active state so next pending io will be issued immediately
-        // no one is active now but some is pending
-        if (!scheduler->IsActive() && scheduler->IsPending()){
-            // this must happen immediately after last io has finished
+
+        if (!scheduler->IsActive() && scheduler->IsPending()) {
             scheduler->FetchNext();
             scheduler->LogNext();
+        }
+
+        while (scheduler->IsActive()) {
+            if (scheduler->IsCompleted()) {
+                scheduler->ClearActive();
+                if (scheduler->IsPending()) {
+                    scheduler->FetchNext();
+                    scheduler->LogNext();
+                } else {
+                    break;
+                }
+            } else {
+                break;
+            }
         }
 
         if (scheduler->IsActive()) {
