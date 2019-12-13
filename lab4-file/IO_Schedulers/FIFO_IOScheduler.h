@@ -16,8 +16,7 @@ public:
     FIFO_IOScheduler()= default;;
     bool IsPending() override;
     void AddNewIORequest(std::unique_ptr<Request>&& request) override;
-    void FetchNextAndStartNewIO() override;
-    void MoveForward() override;
+    void FetchNext() override;
     ~FIFO_IOScheduler() override= default;;
 };
 

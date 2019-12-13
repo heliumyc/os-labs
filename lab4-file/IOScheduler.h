@@ -14,22 +14,34 @@ enum class IOSchedType {FIFO, SSTF, LOOK, CLOOK, FLOOK};
 
 class IOScheduler {
 protected:
-    std::unique_ptr<Request> active_io{};
+    std::unique_ptr<Request> active_io = nullptr;
     int head = 0;
     int time = 0;
+    int direction = 1;
+    int last_submitted_time = 0;
+
+    // final summary
+    std::vector<std::unique_ptr<Request>> finished_requests {};
+    int total_movement = 0;
+    double total_turnaround = 0;
+    double total_wait_time = 0;
+    int max_wait_time = 0;
+    int request_num = 0;
     MyLogger logger;
 
 public:
     void Start();
-    void IncrementTime();
+    void SetTime(int& current_time);
     bool IsActive();
     bool IsCompleted();
     void ClearActive();
-    void SetLogger(MyLogger& logger);
-    virtual void MoveForward() = 0;
+    void SetLogger(MyLogger& my_logger);
+    void LogSummary();
+    void MoveForward();
+    void StartNext();
     virtual bool IsPending() = 0;
     virtual void AddNewIORequest(std::unique_ptr<Request>&& request) = 0;
-    virtual void FetchNextAndStartNewIO() = 0;
+    virtual void FetchNext() = 0;
     virtual ~IOScheduler();
 };
 

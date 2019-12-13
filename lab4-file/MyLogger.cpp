@@ -48,7 +48,7 @@ MyLogger &operator<<(MyLogger &logger, const std::string& log) {
     return logger;
 }
 
-MyLogger &operator<<(MyLogger &logger, const int &log) {
+MyLogger &operator<<(MyLogger &logger,  int log) {
     *( logger.output_ ) << log;
     return logger;
 }

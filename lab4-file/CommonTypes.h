@@ -10,5 +10,7 @@ typedef struct {
     int op_idx;
     int timestamp;
     int track_num;
+    int start_time;
+    int finish_time;
 } Request;
 #endif //LAB4_FILE_COMMONTYPES_H

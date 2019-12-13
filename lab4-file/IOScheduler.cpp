@@ -20,32 +20,59 @@ std::unique_ptr<IOScheduler> IOSchedulerFactory::CreateScheduler(IOSchedType io_
     }
 }
 
-void IOScheduler::IncrementTime() {
-    time++;
+void IOScheduler::SetTime(int& current_time) {
+    time = current_time;
 }
 
 bool IOScheduler::IsActive() {
-    return active_io == nullptr;
+    return this->active_io != nullptr;
 }
 
 bool IOScheduler::IsCompleted() {
-    return active_io->timestamp == time;
+    return this->head == this->active_io->track_num;
 }
 
 void IOScheduler::ClearActive() {
-    active_io.reset();
+    if (logger.IsLogVerbose() && this->head == this->active_io->track_num) {
+        logger << this->time << ":     " << this->active_io->op_idx << " finish " << this->time - this->active_io->timestamp << "\n";
+    }
+    request_num++;
+    active_io->finish_time = time;
+    finished_requests.push_back(std::move(active_io));
 }
 
-void IOScheduler::SetLogger(MyLogger &logger) {
+void IOScheduler::MoveForward() {
+    this->head += this->direction;
+    this->total_movement++;
+}
+
+void IOScheduler::SetLogger(MyLogger &my_logger) {
     // this is copy!!!, but does not matter, bear the cost
-    this->logger = logger;
+    this->logger = my_logger;
 }
 
 void IOScheduler::Start() {
-    active_io.reset();
+    active_io = nullptr;
     if (logger.IsLogVerbose()) {
         logger << "TRACE" << "\n";
     }
+}
+
+void IOScheduler::LogSummary() {
+    for (auto const& req : finished_requests) {
+        printf("%5d: %5d %5d %5d\n", req->op_idx, req->timestamp, req->start_time, req->finish_time);
+        total_turnaround += req->finish_time - req->timestamp;
+        total_wait_time += req->start_time - req->timestamp;
+        max_wait_time = max(max_wait_time, req->start_time - req->timestamp);
+    }
+    printf("SUM: %d %d %.2lf %.2lf %d\n",
+            this->time, this->total_movement, this->total_turnaround/this->request_num,
+            this->total_wait_time/this->request_num, this->max_wait_time);
+}
+
+void IOScheduler::StartNext() {
+    last_submitted_time = time;
+    active_io->start_time = time;
 }
 
 IOScheduler::~IOScheduler() = default;

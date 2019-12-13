@@ -62,7 +62,8 @@ void ReadArgs(int argc, char** argv) {
 void Simulation(unique_ptr<IOScheduler> scheduler, queue<unique_ptr<Request>> &io_requests) {
     scheduler->Start();
     for (int current_time = 0;!io_requests.empty() || scheduler->IsActive() || scheduler->IsPending(); ++current_time) {
-        if (current_time == io_requests.front()->timestamp) {
+        scheduler->SetTime(current_time);
+        if (!io_requests.empty() && current_time == io_requests.front()->timestamp) {
             // a new request comes at this time
             // add it to io queue
             scheduler->AddNewIORequest(std::move(io_requests.front()));
@@ -72,19 +73,22 @@ void Simulation(unique_ptr<IOScheduler> scheduler, queue<unique_ptr<Request>> &i
             if (scheduler->IsCompleted()) {
                 // logging summary info
                 scheduler->ClearActive();
-            } else {
-                scheduler->MoveForward();
             }
         }
         // if completed, must clear active state so next pending io will be issued immediately
         // no one is active now but some is pending
         if (!scheduler->IsActive() && scheduler->IsPending()){
             // this must happen immediately after last io has finished
-            scheduler->FetchNextAndStartNewIO();
+            scheduler->FetchNext();
+            scheduler->StartNext();
         }
 
-        scheduler->IncrementTime();
+        if (scheduler->IsActive()) {
+            scheduler->MoveForward();
+        }
+
     }
+    scheduler->LogSummary();
 }
 
 int main(int arc, char** argv) {

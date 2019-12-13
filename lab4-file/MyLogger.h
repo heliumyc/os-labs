@@ -26,7 +26,7 @@ public:
     bool IsLogFlookDetail() const;
 
     friend MyLogger& operator << (MyLogger& logger, const std::string& log);
-    friend MyLogger& operator << (MyLogger& logger, const int& log);
+    friend MyLogger& operator << (MyLogger& logger, int log);
     // if using other ostream, need to close it;
     ~MyLogger();
 };

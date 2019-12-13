@@ -11,16 +11,18 @@ bool FIFO_IOScheduler::IsPending() {
 
 void FIFO_IOScheduler::AddNewIORequest(std::unique_ptr<Request> &&request) {
     if (this->logger.IsLogVerbose()) {
-        logger << request->timestamp << ":     ";
+        logger << request->timestamp << ":     " << request->op_idx << " add " << request->track_num << "\n";
     }
     this->wait_queue.push(move(request));
 }
 
-void FIFO_IOScheduler::FetchNextAndStartNewIO() {
+void FIFO_IOScheduler::FetchNext() {
     this->active_io = move(wait_queue.front());
+    if (this->logger.IsLogVerbose()) {
+        logger << this->time << ":     " << this->active_io->op_idx;
+        logger << " issue " << this->active_io->track_num << " " << this->head << "\n";
+    }
     this->wait_queue.pop();
-}
 
-void FIFO_IOScheduler::MoveForward() {
-    this->head++;
+    this->direction = this->active_io->track_num > this->head? 1 : -1;
 }
