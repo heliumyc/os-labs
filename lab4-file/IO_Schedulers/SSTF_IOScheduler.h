@@ -7,11 +7,12 @@
 
 
 #include <memory>
+#include <deque>
 #include "../IOScheduler.h"
 
 class SSTF_IOScheduler : public IOScheduler {
 private:
-    std::vector<std::unique_ptr<Request>> wait_queue;
+    std::deque<std::unique_ptr<Request>> wait_queue;
 public:
     SSTF_IOScheduler()= default;
     bool IsPending() override;
