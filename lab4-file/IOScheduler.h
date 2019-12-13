@@ -40,7 +40,7 @@ public:
     void LogNew(const std::unique_ptr<Request>& new_request);
     void LogNext();
     virtual bool IsPending() = 0;
-    virtual void AddNewIORequest(std::unique_ptr<Request>&& request) = 0;
+    virtual void AddNewIORequest(std::unique_ptr<Request>& request) = 0;
     virtual void FetchNext() = 0;
     virtual ~IOScheduler();
 };

@@ -9,7 +9,7 @@ bool FIFO_IOScheduler::IsPending() {
     return !this->wait_queue.empty();
 }
 
-void FIFO_IOScheduler::AddNewIORequest(std::unique_ptr<Request> &&request) {
+void FIFO_IOScheduler::AddNewIORequest(std::unique_ptr<Request> &request) {
     this->wait_queue.push(move(request));
 }
 
