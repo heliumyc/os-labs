@@ -18,7 +18,6 @@ protected:
     int head = 0;
     int time = 0;
     int direction = 1;
-    int last_submitted_time = 0;
 
     // final summary
     std::vector<std::unique_ptr<Request>> finished_requests {};

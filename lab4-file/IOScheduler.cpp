@@ -71,7 +71,6 @@ void IOScheduler::LogSummary() {
 }
 
 void IOScheduler::LogNext() {
-    last_submitted_time = time;
     active_io->start_time = time;
     if (this->logger.IsLogVerbose()) {
         logger << this->time << ":     " << this->active_io->op_idx;
