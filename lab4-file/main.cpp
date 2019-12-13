@@ -76,6 +76,7 @@ void Simulation(unique_ptr<IOScheduler> scheduler, queue<unique_ptr<Request>> &i
             scheduler->LogNext();
         }
 
+        // why this? because multiple request may have the same track number, so either you stop the world, or loop it
         while (scheduler->IsActive()) {
             if (scheduler->IsCompleted()) {
                 scheduler->ClearActive();

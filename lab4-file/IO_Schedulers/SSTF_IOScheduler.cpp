@@ -3,7 +3,7 @@
 //
 
 #include "SSTF_IOScheduler.h"
-
+#include <algorithm>
 bool SSTF_IOScheduler::IsPending() {
     return !this->wait_queue.empty();
 }
