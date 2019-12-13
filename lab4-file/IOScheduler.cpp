@@ -79,9 +79,9 @@ void IOScheduler::LogNext() {
     }
 }
 
-void IOScheduler::LogNew() {
+void IOScheduler::LogNew(const std::unique_ptr<Request>& new_request) {
     if (this->logger.IsLogVerbose()) {
-        logger << active_io->timestamp << ":     " << active_io->op_idx << " add " << active_io->track_num << "\n";
+        logger << new_request->timestamp << ":     " << new_request->op_idx << " add " << new_request->track_num << "\n";
     }
 }
 

@@ -37,7 +37,7 @@ public:
     void SetLogger(MyLogger& my_logger);
     void LogSummary();
     void MoveForward();
-    void LogNew();
+    void LogNew(const std::unique_ptr<Request>& new_request);
     void LogNext();
     virtual bool IsPending() = 0;
     virtual void AddNewIORequest(std::unique_ptr<Request>&& request) = 0;

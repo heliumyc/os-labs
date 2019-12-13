@@ -66,8 +66,8 @@ void Simulation(unique_ptr<IOScheduler> scheduler, queue<unique_ptr<Request>> &i
         if (!io_requests.empty() && current_time == io_requests.front()->timestamp) {
             // a new request comes at this time
             // add it to io queue
+            scheduler->LogNew(io_requests.front());
             scheduler->AddNewIORequest(std::move(io_requests.front()));
-            scheduler->LogNew();
             io_requests.pop();
         }
         if (scheduler->IsActive()) {
