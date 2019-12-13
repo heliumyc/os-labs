@@ -15,7 +15,7 @@ private:
 public:
     SSTF_IOScheduler()= default;
     bool IsPending() override;
-    void AddNewIORequest(std::unique_ptr<Request>& request) override;
+    void AddNewIORequest(std::unique_ptr<Request>&& request) override;
     void FetchNext() override;
     ~SSTF_IOScheduler() override= default;
 };

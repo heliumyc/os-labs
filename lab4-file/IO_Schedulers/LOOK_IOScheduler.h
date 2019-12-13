@@ -18,7 +18,7 @@ private:
 public:
     LOOK_IOScheduler()= default;
     bool IsPending() override;
-    void AddNewIORequest(std::unique_ptr<Request>& request) override;
+    void AddNewIORequest(std::unique_ptr<Request>&& request) override;
     void FetchNext() override;
     ~LOOK_IOScheduler() override= default;
 };

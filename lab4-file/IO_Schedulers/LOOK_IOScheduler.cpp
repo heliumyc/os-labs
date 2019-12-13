@@ -9,7 +9,7 @@ bool LOOK_IOScheduler::IsPending() {
     return !clockwise.empty() || !counter_clockwise.empty();
 }
 
-void LOOK_IOScheduler::AddNewIORequest(std::unique_ptr<Request> &request) {
+void LOOK_IOScheduler::AddNewIORequest(std::unique_ptr<Request> &&request) {
     if (request->track_num > dest_track) {
         this->clockwise.push_front(std::move(request));
     } else if (request->track_num < dest_track){

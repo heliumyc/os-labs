@@ -8,7 +8,7 @@ bool SSTF_IOScheduler::IsPending() {
     return !this->wait_queue.empty();
 }
 
-void SSTF_IOScheduler::AddNewIORequest(std::unique_ptr<Request> &request) {
+void SSTF_IOScheduler::AddNewIORequest(std::unique_ptr<Request> &&request) {
     wait_queue.push_back(std::move(request));
 }
 
