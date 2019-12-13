@@ -3,6 +3,7 @@
 //
 
 #include "LOOK_IOScheduler.h"
+#include <algorithm>
 
 bool LOOK_IOScheduler::IsPending() {
     return !clockwise.empty() || !counter_clockwise.empty();
