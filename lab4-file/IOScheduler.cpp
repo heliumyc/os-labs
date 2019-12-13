@@ -11,6 +11,7 @@
 #include "IO_Schedulers/SSTF_IOScheduler.h"
 #include "IO_Schedulers/LOOK_IOScheduler.h"
 #include "IO_Schedulers/CLOOK_IOScheduler.h"
+#include "IO_Schedulers/FLOOK_IOScheduler.h"
 
 std::unique_ptr<IOScheduler> IOSchedulerFactory::CreateScheduler(IOSchedType io_sched_type) {
     switch (io_sched_type) {
@@ -18,7 +19,7 @@ std::unique_ptr<IOScheduler> IOSchedulerFactory::CreateScheduler(IOSchedType io_
         case IOSchedType::SSTF:  return std::make_unique<SSTF_IOScheduler>();
         case IOSchedType::LOOK:  return std::make_unique<LOOK_IOScheduler>();
         case IOSchedType::CLOOK: return std::make_unique<CLOOK_IOScheduler>();
-//        case IOSchedType::FLOOK: sched = new FLOOK_IOScheduler(); break;;
+        case IOSchedType::FLOOK: return std::make_unique<FLOOK_IOScheduler>();
         default:
             return std::make_unique<FIFO_IOScheduler>();
     }
