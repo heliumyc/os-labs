@@ -43,36 +43,16 @@ void FLOOK_IOScheduler::FetchNext() {
 
 void FLOOK_IOScheduler::AllocateFromAddQueue() {
     // dissect the add queue!
-//    std::deque<std::unique_ptr<Request>> temp;
-//    int min_dist = INT32_MAX;
-//    int min_op = INT32_MAX;
     while (!add_queue.empty()) {
         auto& it = add_queue.front();
-//        int cur_dist = std::abs(it->track_num-head);
-//        int cur_op = it->op_idx;
         if (it->track_num > head) {
-//            if (min_dist > cur_dist || (min_dist == cur_dist && min_op > cur_op)) {
-//                min_dist = std::abs(it->track_num-head);
-//                min_op = cur_op;
-//                active_queue = &clockwise;
-//            }
             clockwise.push_back(std::move(it));
         } else if (it->track_num < head) {
-//            if (min_dist > cur_dist || (min_dist == cur_dist && min_op > cur_op)) {
-//                min_dist = std::abs(it->track_num-head);
-//                min_op = cur_op;
-//                active_queue = &counter_clockwise;
-//            }
             counter_clockwise.push_back(std::move(it));
         } else {
+            // special case!
             active_queue->push_back(std::move(it));
-//            temp.push_back(std::move(it));
         }
         add_queue.pop_front();
     }
-    // special case !!!
-//    while (!temp.empty()) {
-//        active_queue->push_back(std::move(temp.front()));
-//        temp.pop_front();
-//    }
 }
