@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <iostream>
+#include <algorithm>
 #include "IO_Schedulers/FIFO_IOScheduler.h"
 #include "IO_Schedulers/SSTF_IOScheduler.h"
 
@@ -60,6 +61,9 @@ void IOScheduler::Start() {
 }
 
 void IOScheduler::LogSummary() {
+    std::sort(finished_requests.begin(), finished_requests.end(), [](const auto & a, const auto & b){
+       return a->op_idx < b->op_idx;
+    });
     for (auto const& req : finished_requests) {
         printf("%5d: %5d %5d %5d\n", req->op_idx, req->timestamp, req->start_time, req->finish_time);
         total_turnaround += req->finish_time - req->timestamp;
