@@ -7,12 +7,13 @@
 #include <memory>
 #include <iostream>
 #include "IO_Schedulers/FIFO_IOScheduler.h"
+#include "IO_Schedulers/SSTF_IOScheduler.h"
 
 std::unique_ptr<IOScheduler> IOSchedulerFactory::CreateScheduler(IOSchedType io_sched_type) {
     switch (io_sched_type) {
-        case IOSchedType::FIFO:  return std::make_unique<FIFO_IOScheduler>(); break;
+        case IOSchedType::FIFO:  return std::make_unique<FIFO_IOScheduler>();
+        case IOSchedType::SSTF:  return std::make_unique<SSTF_IOScheduler>();
 //        case IOSchedType::CLOOK: sched = new CLOOK_IOScheduler(); break;
-//        case IOSchedType::SSTF:  sched = new SSTF_IOScheduler(); break;;
 //        case IOSchedType::FLOOK: sched = new FLOOK_IOScheduler(); break;;
 //        case IOSchedType::LOOK:  sched = new LOOK_IOScheduler(); break;;
         default:
