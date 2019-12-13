@@ -42,9 +42,4 @@ void LOOK_IOScheduler::FetchNext() {
 
     dest_track = active_io->track_num;
 
-//    if (direction > 0 && wait_queue_1.empty()) {
-//        active_queue = &wait_queue_2;
-//    } else if (direction < 0 && wait_queue_2.empty()) {
-//        active_queue = &wait_queue_1;
-//    }
 }
