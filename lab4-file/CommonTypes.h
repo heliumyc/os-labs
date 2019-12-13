@@ -7,6 +7,7 @@
 #include <memory>
 
 typedef struct {
+    int op_idx;
     int timestamp;
     int track_num;
 } Request;

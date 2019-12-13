@@ -4,15 +4,16 @@
 #include <memory>
 #include "MyReader.h"
 #include "IOScheduler.h"
+#include "MyLogger.h"
 
 using namespace std;
 
 // global variables
 string INPUT_PATH;
 IOSchedType IO_SCHED_SPEC;
-bool IS_VERBOSE = false;
-bool IS_DETAIL = false;
-bool IS_FLOOK_QUEUE_INFO = false;
+bool LOG_VERBOSE = false;
+bool LOG_DETAIL = false;
+bool LOG_FLOOK_QUEUE_INFO = false;
 
 void ReadArgs(int argc, char** argv) {
     int opt;
@@ -24,11 +25,11 @@ void ReadArgs(int argc, char** argv) {
             case 's':
                 algorithm_choice = string(optarg); break;
             case 'v':
-                IS_VERBOSE = true; break;
+                LOG_VERBOSE = true; break;
             case 'q':
-                IS_DETAIL = true; break;
+                LOG_DETAIL = true; break;
             case 'f':
-                IS_FLOOK_QUEUE_INFO = true; break;
+                LOG_FLOOK_QUEUE_INFO = true; break;
             default:
                 cout << "unknown args: " << opt << endl; break;
         }
@@ -59,6 +60,7 @@ void ReadArgs(int argc, char** argv) {
 }
 
 void Simulation(unique_ptr<IOScheduler> scheduler, queue<unique_ptr<Request>> &io_requests) {
+    scheduler->Start();
     for (int current_time = 0;!io_requests.empty() || scheduler->IsActive() || scheduler->IsPending(); ++current_time) {
         if (current_time == io_requests.front()->timestamp) {
             // a new request comes at this time
@@ -89,13 +91,22 @@ int main(int arc, char** argv) {
 
     ReadArgs(arc, argv);
     MyReader reader(std::make_unique<ifstream>(INPUT_PATH));
+    MyLogger logger(std::cout);
+    logger.SetLogDetail(LOG_DETAIL);
+    logger.SetLogVerbose(LOG_VERBOSE);
+    logger.SetLogFlookDetail(LOG_FLOOK_QUEUE_INFO);
 
     queue<unique_ptr<Request>> io_requests;
-//     load IO request from input
     int timestamp, track_num;
+    int op_idx = 0;
     while (reader >> timestamp >> track_num) {
-        io_requests.push(make_unique<Request>(Request{.timestamp=timestamp, .track_num=track_num}));
+        io_requests.push(make_unique<Request>(Request{.timestamp=timestamp, .track_num=track_num, .op_idx=op_idx}));
+        op_idx++;
     }
-    Simulation(IOSchedulerFactory::CreateScheduler(IO_SCHED_SPEC), io_requests);
+
+    auto scheduler = IOSchedulerFactory::CreateScheduler(IO_SCHED_SPEC);
+    scheduler->SetLogger(logger);
+    Simulation(std::move(scheduler), io_requests);
+
     return 0;
 }

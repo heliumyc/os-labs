@@ -8,6 +8,7 @@
 #include <queue>
 #include <iostream>
 #include "CommonTypes.h"
+#include "MyLogger.h"
 
 enum class IOSchedType {FIFO, SSTF, LOOK, CLOOK, FLOOK};
 
@@ -16,17 +17,20 @@ protected:
     std::unique_ptr<Request> active_io{};
     int head = 0;
     int time = 0;
+    MyLogger logger;
 
 public:
+    void Start();
     void IncrementTime();
     bool IsActive();
     bool IsCompleted();
     void ClearActive();
+    void SetLogger(MyLogger& logger);
     virtual void MoveForward() = 0;
     virtual bool IsPending() = 0;
     virtual void AddNewIORequest(std::unique_ptr<Request>&& request) = 0;
     virtual void FetchNextAndStartNewIO() = 0;
-    virtual ~IOScheduler()= default;;
+    virtual ~IOScheduler();
 };
 
 class IOSchedulerFactory {

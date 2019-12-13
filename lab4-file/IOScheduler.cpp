@@ -36,3 +36,17 @@ void IOScheduler::ClearActive() {
     active_io.reset();
 }
 
+void IOScheduler::SetLogger(MyLogger &logger) {
+    // this is copy!!!, but does not matter, bear the cost
+    this->logger = logger;
+}
+
+void IOScheduler::Start() {
+    active_io.reset();
+    if (logger.IsLogVerbose()) {
+        logger << "TRACE" << "\n";
+    }
+}
+
+IOScheduler::~IOScheduler() = default;
+

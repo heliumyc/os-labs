@@ -10,14 +10,17 @@ bool FIFO_IOScheduler::IsPending() {
 }
 
 void FIFO_IOScheduler::AddNewIORequest(std::unique_ptr<Request> &&request) {
-    this-> wait_queue.push(move(request));
+    if (this->logger.IsLogVerbose()) {
+        logger << request->timestamp << ":     ";
+    }
+    this->wait_queue.push(move(request));
 }
 
 void FIFO_IOScheduler::FetchNextAndStartNewIO() {
-    this-> active_io = move(wait_queue.front());
-    this-> wait_queue.pop();
+    this->active_io = move(wait_queue.front());
+    this->wait_queue.pop();
 }
 
 void FIFO_IOScheduler::MoveForward() {
-    this-> head++;
+    this->head++;
 }
