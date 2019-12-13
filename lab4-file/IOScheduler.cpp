@@ -70,9 +70,15 @@ void IOScheduler::LogSummary() {
             this->total_wait_time/this->request_num, this->max_wait_time);
 }
 
-void IOScheduler::StartNext() {
+void IOScheduler::LogNext() {
     last_submitted_time = time;
     active_io->start_time = time;
+}
+
+void IOScheduler::LogNew() {
+    if (this->logger.IsLogVerbose()) {
+        logger << active_io->timestamp << ":     " << active_io->op_idx << " add " << active_io->track_num << "\n";
+    }
 }
 
 IOScheduler::~IOScheduler() = default;

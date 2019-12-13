@@ -10,9 +10,6 @@ bool FIFO_IOScheduler::IsPending() {
 }
 
 void FIFO_IOScheduler::AddNewIORequest(std::unique_ptr<Request> &&request) {
-    if (this->logger.IsLogVerbose()) {
-        logger << request->timestamp << ":     " << request->op_idx << " add " << request->track_num << "\n";
-    }
     this->wait_queue.push(move(request));
 }
 

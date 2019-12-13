@@ -67,6 +67,7 @@ void Simulation(unique_ptr<IOScheduler> scheduler, queue<unique_ptr<Request>> &i
             // a new request comes at this time
             // add it to io queue
             scheduler->AddNewIORequest(std::move(io_requests.front()));
+            scheduler->LogNew();
             io_requests.pop();
         }
         if (scheduler->IsActive()) {
@@ -80,7 +81,7 @@ void Simulation(unique_ptr<IOScheduler> scheduler, queue<unique_ptr<Request>> &i
         if (!scheduler->IsActive() && scheduler->IsPending()){
             // this must happen immediately after last io has finished
             scheduler->FetchNext();
-            scheduler->StartNext();
+            scheduler->LogNext();
         }
 
         if (scheduler->IsActive()) {
