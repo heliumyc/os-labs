@@ -38,6 +38,9 @@ void CLOOK_IOScheduler::FetchNext() {
 }
 
 CLOOK_IOScheduler::CLOOK_IOScheduler() {
-    this->active_queue = new std::deque<std::unique_ptr<Request>>();
-    this->wait_queue = new std::deque<std::unique_ptr<Request>>();
+    // may cause memory leak!!!!!!
+//    this->active_queue = new std::deque<std::unique_ptr<Request>>();
+//    this->wait_queue = new std::deque<std::unique_ptr<Request>>();
+    this->active_queue = &run_queue_1;
+    this->wait_queue = &run_queue_2;
 }
