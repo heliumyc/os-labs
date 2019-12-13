@@ -100,7 +100,7 @@ int main(int arc, char** argv) {
     int timestamp, track_num;
     int op_idx = 0;
     while (reader >> timestamp >> track_num) {
-        io_requests.push(make_unique<Request>(Request{.timestamp=timestamp, .track_num=track_num, .op_idx=op_idx}));
+        io_requests.push(make_unique<Request>(Request{.op_idx=op_idx, .timestamp=timestamp, .track_num=track_num}));
         op_idx++;
     }
 
