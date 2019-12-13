@@ -3,6 +3,7 @@
 //
 
 #include "CLOOK_IOScheduler.h"
+#include <algorithm>
 
 bool CLOOK_IOScheduler::IsPending() {
     return !active_queue->empty() || !wait_queue->empty();
